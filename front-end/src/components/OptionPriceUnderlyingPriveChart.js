@@ -30,7 +30,7 @@ ChartJS.register(
     Legend
 );
 
-Chart.defaults.color
+ChartJS.defaults.color = "rgba(255, 255, 255, 0.9)";
 
 export const options = {
     responsive: true,
