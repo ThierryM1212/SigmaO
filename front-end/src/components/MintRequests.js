@@ -1,12 +1,11 @@
 import React, { Fragment } from 'react';
-import { OPTION_TYPES, UNDERLYING_TOKENS } from '../utils/constants';
+import { OPTION_STYLES, UNDERLYING_TOKENS } from '../utils/constants';
 import Table from 'react-bootstrap/Table';
 import JSONBigInt from 'json-bigint';
 
 import { getUnspentBoxesForAddressUpdated } from '../ergo-related/explorer';
 import { mintOption, refundOptionRequest } from '../ergo-related/mint';
 
-/* global BigInt */
 
 export default class MintRequests extends React.Component {
     constructor(props) {
@@ -21,7 +20,7 @@ export default class MintRequests extends React.Component {
         var allOptionRequests = [];
         for (const token of UNDERLYING_TOKENS) {
             const optionMintRequests = (await getUnspentBoxesForAddressUpdated(token.optionScriptAddress))
-                .filter(box => box.assets.length == 1);
+                .filter(box => box.assets.length === 1);
             allOptionRequests = allOptionRequests.concat(optionMintRequests);
         }
         console.log("allOptionRequests", allOptionRequests)
@@ -47,7 +46,7 @@ export default class MintRequests extends React.Component {
                     <Table striped bordered hover>
                         <thead>
                             <tr>
-                                <th>Type</th>
+                                <th>Style</th>
                                 <th>Token</th>
                                 <th>Amount</th>
                                 <th>Share size</th>
@@ -66,7 +65,7 @@ export default class MintRequests extends React.Component {
                                     const optionToken = UNDERLYING_TOKENS.find(tok => tok.optionScriptAddress === box.address)
 
                                     return <tr key={box.boxId}>
-                                        <td>{OPTION_TYPES.find(opt => opt.id === optionParams[0]).label}</td>
+                                        <td>{OPTION_STYLES.find(opt => opt.id === optionParams[0]).label}</td>
                                         <td>{optionToken.label}</td>
                                         <td>{(box.assets[0].amount - 1) / ( optionParams[1] * Math.pow(10, optionToken.decimals)) }</td>
                                         <td>{optionParams[1]}</td>

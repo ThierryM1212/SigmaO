@@ -18,7 +18,7 @@
         {
             "name": "OptionCallScriptHash",
             "type": "CollByte",
-            "value": "dd5c9537ec2bc80255774e73cdf415e68001205d14268fe761b5c5abd8ff32ba"
+            "value": "6bc422b1ed33acb643bef0f46aabf7ec645c6be770ac8cc43417abc4584b2b82"
         },
         {
             "name": "HourInMilli",

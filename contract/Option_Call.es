@@ -1,10 +1,6 @@
 {   
     // Option Call contract ERG / underlying token 
     // needs an Oracle like SigUSD, with a tokenId Oracle box identifier and price in nanoerg per token in the R4
-    // State "created" or "notMinted"
-    //     R4: option name Coll[Byte] utf-8 encoded
-    //     R5: option desc Coll[Byte] utf-8 encoded
-    // 
     val valueIn: Long = SELF.value
     val optionName: Coll[Byte] = SELF.R4[Coll[Byte]].get
     val selfToken0: (Coll[Byte], Long) = SELF.tokens.getOrElse(0, (Coll[Byte](),0L))
@@ -30,7 +26,7 @@
         SELF
     }
 
-    val optionType: Long = optionCreationBox.R8[Coll[Long]].get(0) // 0 european, 1 american
+    val optionStyle: Long = optionCreationBox.R8[Coll[Long]].get(0) // 0 european, 1 american
     val shareSize: Long = optionCreationBox.R8[Coll[Long]].get(1) // Number of underlying token granted per option, 1 for 1 SigUSD per option
     val shareSizeAdjusted: Long = shareSize * underlyingAssetDecimalFactor // Number of tokens per option, with decimals
     val maturityDate: Long = optionCreationBox.R8[Coll[Long]].get(2) // Unix time
@@ -52,7 +48,7 @@
     val remainingDuration: Long = maturityDate - currentTimestamp
     val isExpired: Boolean = currentTimestamp > maturityDate
     val isFrozen: Boolean = !isExpired && currentTimestamp > (maturityDate - FreezeDelay)
-    val isExercible: Boolean = if (optionType == 0) { // European
+    val isExercible: Boolean = if (optionStyle == 0) { // European
         // exercible during 24h after expiration
         isMinted && isExpired && currentTimestamp < maturityDate + 24 * HourInMilli
     } else { // American
@@ -103,32 +99,21 @@
     val validBuyOption: Boolean = if (!isFrozen && INPUTS.size == 2 && CONTEXT.dataInputs.size > 0) {
         // Oracle Info
         val oracleBox: Box = CONTEXT.dataInputs(0)
-        val validOracle: Boolean = oracleBox.tokens(0)._1 == OracleTokenId
         val oraclePrice: Long = oracleBox.R4[Long].get // nanoerg per token
+        val oracleHeight: Long = oracleBox.R5[Int].get
+        val validOracle: Boolean = oracleBox.tokens(0)._1 == OracleTokenId && HEIGHT <= oracleHeight + 30
+
+        // SQRT values
+        val SQRTy: Coll[Long] = Coll(0L, 100L, 500L, 1000L, 2000L, 4000L, 9000L, 13000L, 20000L, 30000L, 40000L,
+            50000L, 70000L, 110000L, 140000L, 170000L, 210000L, 250000L, 300000L, 500000L )
+        val SQRTx: Coll[Long] = SQRTy.map{(n: Long) => n * n}
+        val SQRT: Coll[(Long, Long)] = SQRTx.zip(SQRTy)
         
         // duration in year
         // european premium price = 0.4 * sigma * strike price * SQRT(duration) * (1 + K1 * ABS(underlying price - strike price) / strike price)
         // american premium price = (1 + K2 * SQRT(duration)) * european premium price
         // make linear regression to approximate the square root of the remaining duration
         // use BigInt to avoid overflow
-        val SQRT: Coll[(Long, Long)] = Coll(
-            (0L,0L),
-            (3600000L,1897L),
-            (14400000L,3795L),
-            (86400000L,9295L),
-            (172800000L,13145L),
-            (432000000L,20785L),
-            (864000000L,29394L),
-            (1728000000L,41569L),
-            (2592000000L,50912L),
-            (5184000000L,72000L),
-            (12960000000L,113842L),
-            (20736000000L,144000L),
-            (31536000000L,177584L),
-            (47304000000L,217495L),
-            (63072000000L,251141L),
-            (94608000000L,307584L),
-        )
         val intrinsicPrice: Long = max(0L, (oraclePrice - strikePrice) * shareSize)  // nanoerg per option
         val indSQRT: Int = SQRT.map{(kv: (Long, Long)) => if (kv._1 >= remainingDuration) {1L} else {0L}}.indexOf(1L, 0)
         val afterPoint: Long = SQRT(indSQRT)
@@ -138,7 +123,7 @@
         val priceSpread: BigInt = max(oraclePrice.toBigInt - strikePrice.toBigInt, strikePrice.toBigInt - oraclePrice.toBigInt)
         val europeanTimeValue: BigInt = max(0.toBigInt, maxTimeValue - (maxTimeValue * K1.toBigInt * priceSpread) / (1000.toBigInt * strikePrice.toBigInt))
         val americanTimeValue: BigInt = europeanTimeValue + (europeanTimeValue * K2.toBigInt * sqrtDuration ) / (1000.toBigInt * 177584.toBigInt)
-        val optionPriceTmp: Long = if (optionType == 0L) { //european
+        val optionPriceTmp: Long = if (optionStyle == 0L) { //european
             intrinsicPrice + europeanTimeValue 
         } else { //american
             intrinsicPrice + americanTimeValue 

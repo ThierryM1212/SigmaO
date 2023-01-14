@@ -14,7 +14,7 @@ export class OptionDef {
         this.optionName = '';
         this.dAppUIErgotree = '';
         this.dAppUIAddress = '';
-        this.optionType = 0;
+        this.optionStyle = 0;
         this.shareSize = 1;
         this.maturityDate = new Date().valueOf();
         this.sigma = 1;
@@ -35,7 +35,7 @@ export class OptionDef {
         this.dAppUIErgotree = await decodeHex(getRegisterValue(this.full, "R5"));
         this.dAppUIAddress = await ergoTreeToAddress(this.dAppUIErgotree);
         const optionParams = await decodeLongArray(getRegisterValue(this.full, "R8"))
-        this.optionType = optionParams[0];
+        this.optionStyle = optionParams[0];
         this.shareSize = optionParams[1];
         this.maturityDate = optionParams[2];
         this.sigma = optionParams[3];
@@ -52,7 +52,7 @@ export class OptionDef {
     }
 
     getOptionPrice(unixDate, underlyingPrice) {
-        const currentOptionPrice = getOptionPrice(this.optionType, unixDate, this.maturityDate, underlyingPrice, this.strikePrice, this.shareSize, this.sigma, this.K1, this.K2);
+        const currentOptionPrice = getOptionPrice(this.optionStyle, unixDate, this.maturityDate, underlyingPrice, this.strikePrice, this.shareSize, this.sigma, this.K1, this.K2);
         return currentOptionPrice.toString();
     }
 

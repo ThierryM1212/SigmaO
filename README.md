@@ -9,7 +9,7 @@
 ![Sigma'O global diagram](./contract/OptionCall_global.drawio.png)
 
 ## Option Emission parameters
-    - Type: European (exercible during 24h after expiration) or American (exercible up to expiration)
+    - Style: European (exercible during 24h after expiration) or American (exercible up to expiration)
     - Underlying token (for example SigUSD)
     - Option amount: number of option created
     - Share size: number of token per option

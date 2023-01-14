@@ -1,6 +1,6 @@
 import { waitingAlert, displayTransaction } from "../utils/Alerts";
 import { encodeHexArrayConst, encodeHexConst, encodeLong, encodeLongArray, encodeStrConst, ergoTreeToAddress, sigmaPropToAddress } from "./serializer";
-import { BUY_OPTION_REQUEST_SCRIPT_ADDRESS, CYTI_MINT_REQUEST_SCRIPT_ADDRESS, DAPP_UI_ERGOTREE, DAPP_UI_FEE, DAPP_UI_MINT_FEE, MIN_NANOERG_BOX_VALUE, NANOERG_TO_ERG, NFT_TYPES, TX_FEE, UNDERLYING_TOKENS } from "../utils/constants";
+import { BUY_OPTION_REQUEST_SCRIPT_ADDRESS, DAPP_UI_ERGOTREE, DAPP_UI_FEE, DAPP_UI_MINT_FEE, MIN_NANOERG_BOX_VALUE, TX_FEE, UNDERLYING_TOKENS } from "../utils/constants";
 import { getTokenUtxos, getUtxos, walletSignTx } from "./wallet";
 import { Serializer } from "@coinbarn/ergo-ts";
 import { boxById, boxByTokenId, currentHeight, getExplorerBlockHeaders, getOraclePrice, searchUnspentBoxesUpdated, sendTx } from "./explorer";
@@ -12,7 +12,7 @@ let ergolib = import('ergo-lib-wasm-browser');
 
 /* global BigInt */
 
-export async function createOptionRequest(optionType, underlyingToken, optionAmount, shareSize, strikePrice, maturityDate, sigma, K1, K2) {
+export async function createOptionRequest(optionStyle, underlyingToken, optionAmount, shareSize, strikePrice, maturityDate, sigma, K1, K2) {
     const alert = waitingAlert("Preparing the transaction...");
     const maturityDateUNIX = maturityDate.valueOf();
     console.log("maturityDate", maturityDate.toISOString().substring(0, 10), maturityDateUNIX);
@@ -44,12 +44,12 @@ export async function createOptionRequest(optionType, underlyingToken, optionAmo
         (await ergolib).TokenId.from_str(underlyingToken.tokenId),
         (await ergolib).TokenAmount.from_i64((await ergolib).I64.from_str(requiredTokenAmount.toString()))
     );
-    var optionTypeLetter = 'E';
-    if (optionType === 1) {
-        optionTypeLetter = 'A';
+    var optionStyleLetter = 'E';
+    if (optionStyle === 1) {
+        optionStyleLetter = 'A';
     }
 
-    const optionName = "CALL_" + optionTypeLetter + "_" + underlyingToken.label + "_ERG_" + strikePrice + "_" + maturityDate.toISOString().substring(0, 10) + "_per_" + shareSize;
+    const optionName = "CALL_" + optionStyleLetter + "_" + underlyingToken.label + "_ERG_" + strikePrice + "_" + maturityDate.toISOString().substring(0, 10) + "_per_" + shareSize;
     mintBoxBuilder.set_register_value(4, await encodeStrConst(optionName));
     mintBoxBuilder.set_register_value(5, await encodeHexConst(DAPP_UI_ERGOTREE));
     mintBoxBuilder.set_register_value(6, await encodeStrConst("0"));
@@ -58,7 +58,7 @@ export async function createOptionRequest(optionType, underlyingToken, optionAmo
     const boxWASM = (await ergolib).ErgoBox.from_json(JSONBigInt.stringify(box));
     mintBoxBuilder.set_register_value(7, (await ergolib).Constant.from_ergo_box(boxWASM));
 
-    const optionParams = [optionType, shareSize, maturityDateUNIX, sigma, K1, K2, strikePrice, DAPP_UI_FEE, DAPP_UI_MINT_FEE];
+    const optionParams = [optionStyle, shareSize, maturityDateUNIX, sigma, K1, K2, strikePrice, DAPP_UI_FEE, DAPP_UI_MINT_FEE];
     mintBoxBuilder.set_register_value(8, await encodeLongArray(optionParams.map(x => x.toString())));
 
     const issuerSigmaProp = (await ergolib).Constant.from_ecpoint_bytes(
@@ -460,7 +460,7 @@ export async function processExerciseRequest(box) {
     const wallet = (await ergolib).Wallet.from_mnemonic("", "");
     const signedTx = JSONBigInt.parse(await signTransaction(tx, utxos, [], wallet));
     const txId = await sendTx(signedTx);
-    alert.close();
+    displayTransaction(txId);
     return txId;
 }
 
@@ -515,22 +515,60 @@ export async function exerciseOptionRequest(optionTokenID, optionAmount) {
 }
 
 
+export async function closeOptionExpired(box, issuerAddress) {
+    const alert = waitingAlert("Preparing the transaction...");
 
+    const inputsWASM = (await ergolib).ErgoBoxes.from_boxes_json([box]);
 
+    const inputWASM = (await ergolib).ErgoBox.from_json(JSONBigInt.stringify(box) );
 
+    const useroutputvalue = box.value - TX_FEE;
+
+    const dataListWASM = new (await ergolib).ErgoBoxAssetsDataList();
+    const boxSelection = new (await ergolib).BoxSelection(inputsWASM, dataListWASM);
+    const creationHeight = await currentHeight();
+    const outputCandidates = (await ergolib).ErgoBoxCandidates.empty();
+    const mintBoxValue = (await ergolib).BoxValue.from_i64((await ergolib).I64.from_str(useroutputvalue.toString()));
+    const mintBoxBuilder = new (await ergolib).ErgoBoxCandidateBuilder(
+        mintBoxValue,
+        (await ergolib).Contract.pay_to_address((await ergolib).Address.from_base58(issuerAddress)),
+        creationHeight);
+    mintBoxBuilder.add_token( // underlying token
+        inputWASM.tokens().get(0).id(),
+        inputWASM.tokens().get(0).amount(),
+    );
+    mintBoxBuilder.set_register_value(4, inputWASM.register_value(4));
+    mintBoxBuilder.set_register_value(5, inputWASM.register_value(5));
+    mintBoxBuilder.set_register_value(6, inputWASM.register_value(6));
+    mintBoxBuilder.set_register_value(7, inputWASM.register_value(7));
+
+    try {
+        outputCandidates.add(mintBoxBuilder.build());
+    } catch (e) {
+        console.log(`building error: ${e}`);
+        throw e;
+    }
+    var tx = await createTransaction(boxSelection, outputCandidates, [], issuerAddress, [box], true);
+    const wallet = (await ergolib).Wallet.from_mnemonic("", "");
+    const signedTx = JSONBigInt.parse(await signTransaction(tx, [box], [], wallet));
+    const txId = await sendTx(signedTx);
+    displayTransaction(txId);
+    return txId;
+}
 
 
 
 
 
 export async function test() {
+    // mint SQRT box
     const alert = waitingAlert("Preparing the transaction...");
-
 
     const address = localStorage.getItem('address');
     const txAmount = 2 * TX_FEE + MIN_NANOERG_BOX_VALUE;
 
     var utxos = await getUtxos(txAmount);
+
     const inputsWASM = (await ergolib).ErgoBoxes.from_boxes_json(utxos);
     const dataListWASM = new (await ergolib).ErgoBoxAssetsDataList();
     const boxSelection = new (await ergolib).BoxSelection(inputsWASM, dataListWASM);
@@ -540,41 +578,34 @@ export async function test() {
     const mintBoxValue = (await ergolib).BoxValue.from_i64((await ergolib).I64.from_str((TX_FEE + MIN_NANOERG_BOX_VALUE).toString()));
     const mintBoxBuilder = new (await ergolib).ErgoBoxCandidateBuilder(
         mintBoxValue,
-        (await ergolib).Contract.pay_to_address((await ergolib).Address.from_base58("28JUQYcEdDNppFaPww1")),
+        (await ergolib).Contract.pay_to_address((await ergolib).Address.from_base58("2fp8i8rY9B2Fs91NZD5vncK")),
         creationHeight);
-
-    const SQRT = [
-        ["0", "0"],
-        ["3600000", "1897"],
-        ["14400000", "3795"],
-        ["86400000", "9295"],
-        ["172800000", "13145"],
-        ["432000000", "20785"],
-        ["864000000", "29394"],
-        ["1728000000", "41569"],
-        ["2592000000", "50912"],
-        ["5184000000", "72000"],
-        ["12960000000", "113842"],
-        ["20736000000", "144000"],
-        ["31536000000", "177584"],
-        ["47304000000", "217495"],
-        ["63072000000", "251141"],
-        ["94608000000", "307584"],
-    ];
+        const SQRT = [
+            ["0", "0"],
+            ["3600000", "1897"],
+            ["14400000", "3795"],
+            ["86400000", "9295"],
+            ["172800000", "13145"],
+            ["432000000", "20785"],
+            ["864000000", "29394"],
+            ["1728000000", "41569"],
+            ["2592000000", "50912"],
+            ["5184000000", "72000"],
+            ["12960000000", "113842"],
+            ["20736000000", "144000"],
+            ["31536000000", "177584"],
+            ["47304000000", "217495"],
+            ["63072000000", "251141"],
+            ["94608000000", "307584"],
+        ];
+    
 
     const SQRTWASM = await Promise.all(SQRT.map(async jstuple => (await ergolib).array_as_tuple(jstuple)));
     const SQRTWASM2 = (await ergolib).Constant.from_js(SQRTWASM);
     console.log("SQRTWASM2", SQRTWASM2.dbg_inner())
-    return;
-    //const issuerErgoTree = (await ergolib).Address.from_base58(address).to_ergo_tree().to_base16_bytes();
-    const issuerErgoTree = (await ergolib).Address.from_base58(address).content_bytes();
-    mintBoxBuilder.set_register_value(4, (await ergolib).Constant.from_byte_array(issuerErgoTree));
-    //const issuerSigmaProp2 =(await ergolib).Constant.from_ecpoint_bytes(
-    //    (await ergolib).Address.from_base58(address).to_bytes(0x00).subarray(1, 34)
-    //).encode_to_base16();
-    console.log(issuerErgoTree);
 
-    mintBoxBuilder.set_register_value(4, await encodeHexConst(issuerErgoTree));
+    mintBoxBuilder.set_register_value(4, SQRTWASM2);
+
 
     try {
         outputCandidates.add(mintBoxBuilder.build());
@@ -585,5 +616,6 @@ export async function test() {
     var tx = await createTransaction(boxSelection, outputCandidates, [], address, utxos);
     console.log("mintOption tx", tx)
     const txId = await walletSignTx(alert, tx, address);
+    displayTransaction(txId);
     return txId;
 }
