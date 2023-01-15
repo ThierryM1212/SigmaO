@@ -10,10 +10,11 @@ import { getOptionPrice, maxBigInt } from './utils';
 export class OptionDef {
     constructor(boxJSON) {
         this.full = boxJSON;
-        this.underlyingTokenId = boxJSON.assets[0].tokenId;
+        this.underlyingTokenId = '';
         this.optionName = '';
         this.dAppUIErgotree = '';
         this.dAppUIAddress = '';
+        this.optionType = 0;
         this.optionStyle = 0;
         this.shareSize = 1;
         this.maturityDate = new Date().valueOf();
@@ -35,24 +36,26 @@ export class OptionDef {
         this.dAppUIErgotree = await decodeHex(getRegisterValue(this.full, "R5"));
         this.dAppUIAddress = await ergoTreeToAddress(this.dAppUIErgotree);
         const optionParams = await decodeLongArray(getRegisterValue(this.full, "R8"))
-        this.optionStyle = optionParams[0];
-        this.shareSize = optionParams[1];
-        this.maturityDate = optionParams[2];
-        this.sigma = optionParams[3];
-        this.K1 = optionParams[4];
-        this.K2 = optionParams[5];
-        this.strikePrice = optionParams[6];
-        this.dAppUIFee = optionParams[7];
-        this.dAppUIMintFee = optionParams[8];
+        this.optionType = optionParams[0];
+        this.optionStyle = optionParams[1];
+        this.shareSize = optionParams[2];
+        this.maturityDate = optionParams[3];
+        this.sigma = optionParams[4];
+        this.K1 = optionParams[5];
+        this.K2 = optionParams[6];
+        this.strikePrice = optionParams[7];
+        this.dAppUIFee = optionParams[8];
+        this.dAppUIMintFee = optionParams[9];
         this.issuerAddress = await sigmaPropToAddress(getRegisterValue(this.full, "R9"));
         this.address = await ergoTreeToAddress(this.full.ergoTree);
+        this.underlyingTokenId = UNDERLYING_TOKENS.find(tok => tok.optionScriptAddress === this.address).tokenId
         this.currentOraclePrice = await getOraclePrice(UNDERLYING_TOKENS.find(tok => tok.tokenId === this.underlyingTokenId).oracleNFTID);
         const ergoContext = await getExplorerBlockHeaders();
         this.currentOptionPrice = this.getOptionPrice(ergoContext[0].timestamp, this.currentOraclePrice);
     }
 
     getOptionPrice(unixDate, underlyingPrice) {
-        const currentOptionPrice = getOptionPrice(this.optionStyle, unixDate, this.maturityDate, underlyingPrice, this.strikePrice, this.shareSize, this.sigma, this.K1, this.K2);
+        const currentOptionPrice = getOptionPrice(this.optionType, this.optionStyle, unixDate, this.maturityDate, underlyingPrice, this.strikePrice, this.shareSize, this.sigma, this.K1, this.K2);
         return currentOptionPrice.toString();
     }
 

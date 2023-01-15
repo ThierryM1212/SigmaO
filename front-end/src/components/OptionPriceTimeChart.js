@@ -15,7 +15,7 @@ import 'chartjs-adapter-date-fns';
 import { enGB } from 'date-fns/locale';
 import { Line } from 'react-chartjs-2';
 import { formatERGAmount, getOptionPrice } from '../utils/utils';
-import { OPTION_STYLES } from '../utils/constants';
+import { OPTION_STYLES, OPTION_TYPES } from '../utils/constants';
 
 ChartJS.register(
     CategoryScale,
@@ -84,13 +84,14 @@ function getDates(startDate, stopDate) {
 
 export function OptionPriceTimeChart(props) {
     const labels= getDates(new Date(), props.maturityDate);
+    const optionTypeNum = OPTION_TYPES.find(o => o.label === props.optionType).id;
     const optionStyleNum = OPTION_STYLES.find(o => o.label === props.optionStyle).id;
     const data = {
         labels,
         datasets: [
             {
                 label: 'Option price over time',
-                data: labels.map(pricingDate => parseInt(getOptionPrice(optionStyleNum, pricingDate, props.maturityDate, props.oraclePrice, props.strikePrice,
+                data: labels.map(pricingDate => parseInt(getOptionPrice(optionTypeNum, optionStyleNum, pricingDate, props.maturityDate, props.oraclePrice, props.strikePrice,
                     props.shareSize, props.sigma, props.K1, props.K2))),
                 borderColor: 'rgb(255, 99, 132)',
                 backgroundColor: 'rgba(255, 99, 132, 0.5)',

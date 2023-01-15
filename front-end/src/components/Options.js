@@ -1,8 +1,8 @@
 import React, { Fragment } from 'react';
-import { OPTION_STYLES, UNDERLYING_TOKENS } from '../utils/constants';
+import { DAPP_UI_MINT_FEE, MIN_NANOERG_BOX_VALUE, OPTION_STYLES, OPTION_TYPES, TX_FEE, UNDERLYING_TOKENS } from '../utils/constants';
 import Table from 'react-bootstrap/Table';
 import JSONBigInt from 'json-bigint';
-import { getUnspentBoxesForAddressUpdated } from '../ergo-related/explorer';
+import { boxByIdv1, getUnspentBoxesForAddressUpdated } from '../ergo-related/explorer';
 import { OptionDef } from '../utils/OptionDef';
 import { buyOptionRequest, closeOptionExpired, exerciseOptionRequest } from '../ergo-related/mint';
 import { promptOptionAmount } from '../utils/Alerts';
@@ -22,16 +22,16 @@ export default class Options extends React.Component {
     }
 
     async fetchOptions() {
-        var allOptions = (await Promise.all(UNDERLYING_TOKENS.map(async token => 
+        var allOptions = (await Promise.all(UNDERLYING_TOKENS.map(async token =>
             (await getUnspentBoxesForAddressUpdated(token.optionScriptAddress))
-                .filter(box => box.assets.length === 2))
+                .filter(box => box.assets.length >= 1))
         )).flat();
 
         allOptions = await Promise.all(allOptions.map(async opt => {
             var res = { ...opt }
             const boxWASM = (await ergolib).ErgoBox.from_json(JSONBigInt.stringify(opt));
             const creationBox = JSONBigInt.parse(boxWASM.register_value(7).to_ergo_box().to_json())
-            //const creationBox2 = await boxByIdv1(creationBox.boxId)
+            //const creationBox_ = await boxByIdv1(creationBox.boxId)
             const creationBox2 = await OptionDef.create(creationBox)
             console.log("creationBox2", creationBox2)
             res["creationBox"] = creationBox2;
@@ -66,6 +66,7 @@ export default class Options extends React.Component {
                     <Table striped bordered hover>
                         <thead>
                             <tr>
+                                <th>Type</th>
                                 <th>Style</th>
                                 <th>Options</th>
                                 <th>Reserve</th>
@@ -90,9 +91,21 @@ export default class Options extends React.Component {
                                     const totalOptionPrice = (BigInt(creationBox.currentOptionPrice) + dAppFee).toString();
 
                                     return <tr key={creationBox.full.boxId}>
+                                        <td>{OPTION_TYPES.find(opt => opt.id === creationBox.optionType).label}</td>
                                         <td>{OPTION_STYLES.find(opt => opt.id === creationBox.optionStyle).label}</td>
-                                        <th>{box.assets[1].amount - 1} / {(creationBox.full.assets[0].amount - 1) / (creationBox.shareSize * Math.pow(10, optionToken.decimals))}</th>
-                                        <th>{(box.assets[0].amount - 1) / Math.pow(10, optionToken.decimals)}{" " + optionToken.label}</th>
+
+                                        {
+                                            creationBox.optionType === 0 ?
+                                                <Fragment>
+                                                    <th>{box.assets[0].amount - 1} / {(creationBox.full.assets[0].amount - 1) / (creationBox.shareSize * Math.pow(10, optionToken.decimals))}</th>
+                                                    <th>{(box.assets[1].amount - 1) / Math.pow(10, optionToken.decimals)}{" " + optionToken.label}</th>
+                                                </Fragment>
+                                                :
+                                                <Fragment>
+                                                    <th>{box.assets[0].amount - 1} / {(creationBox.full.value - 2 * TX_FEE - MIN_NANOERG_BOX_VALUE - DAPP_UI_MINT_FEE) / (creationBox.shareSize * creationBox.strikePrice)}</th>
+                                                    <th>{formatERGAmount(box.value - TX_FEE - MIN_NANOERG_BOX_VALUE)} ERG</th>
+                                                </Fragment>
+                                        }
                                         <td>{formatLongString(creationBox.issuerAddress, 6)}</td>
                                         <td>{creationBox.shareSize}</td>
                                         <td>{creationBox.strikePrice}</td>
@@ -105,6 +118,7 @@ export default class Options extends React.Component {
 
                                             <strong>{formatERGAmount(totalOptionPrice)} ERG</strong>
                                             <div><OptionPriceTimeChart
+                                                optionType={OPTION_TYPES.find(opt => opt.id === creationBox.optionType).label}
                                                 optionStyle={OPTION_STYLES.find(opt => opt.id === creationBox.optionStyle).label}
                                                 maturityDate={creationBox.maturityDate}
                                                 oraclePrice={creationBox.currentOraclePrice}

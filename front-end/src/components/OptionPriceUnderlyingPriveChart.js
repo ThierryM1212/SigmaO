@@ -16,7 +16,7 @@ import {
 import 'chartjs-adapter-date-fns';
 import { Line } from 'react-chartjs-2';
 import { formatERGAmount, getOptionPrice } from '../utils/utils';
-import { OPTION_STYLES } from '../utils/constants';
+import { OPTION_STYLES, OPTION_TYPES } from '../utils/constants';
 
 ChartJS.register(
     CategoryScale,
@@ -90,18 +90,17 @@ function getRange(start, stop) {
 }
 
 export function OptionPriceUnderlyingPriveChart(props) {
-
     var date = props.pricingDate;
-
     const labels = getRange(parseInt(props.oraclePrice / 3), props.oraclePrice * 3);
+    const optionTypeNum = OPTION_TYPES.find(o => o.label === props.optionType).id;
     const optionStyleNum = OPTION_STYLES.find(o => o.label === props.optionStyle).id;
-    console.log("labels", labels)
+    //console.log("labels", labels)
     const data = {
         labels,
         datasets: [
             {
                 label: 'Option price at ' + date.toDateString(),
-                data: labels.map(underlyingPrice => parseInt(getOptionPrice(optionStyleNum, date, props.maturityDate, underlyingPrice, props.strikePrice,
+                data: labels.map(underlyingPrice => parseInt(getOptionPrice(optionTypeNum, optionStyleNum, date, props.maturityDate, underlyingPrice, props.strikePrice,
                     props.shareSize, props.sigma, props.K1, props.K2))),
                 borderColor: 'rgb(255, 99, 132)',
                 backgroundColor: 'rgba(255, 99, 132, 0.5)',

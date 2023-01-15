@@ -1,6 +1,4 @@
-import { getBlob } from "../ergo-related/rest";
 import { NANOERG_TO_ERG, SQRTbase } from "./constants";
-import { createHash } from "crypto";
 
 /* global BigInt */
 
@@ -16,18 +14,6 @@ export function formatLongString(str, num) {
 
 export function formatERGAmount(amountStr) {
     return parseFloat(parseInt(amountStr) / NANOERG_TO_ERG).toFixed(4);
-}
-
-export async function downloadAndSetSHA256(url) {
-    try {
-        const blob = await getBlob(url);
-        const hash = createHash('sha256').update(new Uint8Array(blob)).digest('hex');
-        console.log("HASH", hash)
-        return hash;
-    } catch(e) {
-        console.log(e)
-    }
-    return "";
 }
 
 export function promiseTimeout(ms, promise) {
@@ -65,11 +51,14 @@ export function maxBigInt(...values) {
     return maxValue;
 }
 
-export function getOptionPrice(optionStyle, currentDateUNIX, maturityDate, currentOraclePrice, strikePrice, shareSize, sigma, K1, K2) {
+export function getOptionPrice(optionType, optionStyle, currentDateUNIX, maturityDate, currentOraclePrice, strikePrice, shareSize, sigma, K1, K2) {
     try {
         const remainingDuration = BigInt(maturityDate) - BigInt(currentDateUNIX);
 
-        const intrinsicPrice = maxBigInt(BigInt(0), (BigInt(currentOraclePrice) - BigInt(strikePrice)) * BigInt(shareSize));
+        var intrinsicPrice = maxBigInt(BigInt(0), (BigInt(currentOraclePrice) - BigInt(strikePrice)) * BigInt(shareSize)); // call
+        if (optionType === 1) { // put
+            intrinsicPrice = maxBigInt(BigInt(0), (BigInt(strikePrice) - BigInt(currentOraclePrice)) * BigInt(shareSize));
+        }
         const SQRTBigInt = SQRTbase.map(p => [BigInt(p) * BigInt(p), BigInt(p)]);
         //console.log("getOptionPrice0", remainingDuration, currentOraclePrice, intrinsicPrice)
         const indSQRT = SQRTBigInt.findIndex(point => point[0] >= remainingDuration);
@@ -83,13 +72,13 @@ export function getOptionPrice(optionStyle, currentDateUNIX, maturityDate, curre
         //console.log("getOptionPrice2", maxTimeValue, priceSpread)
         const europeanTimeValue = maxBigInt(BigInt(0), maxTimeValue - (maxTimeValue * BigInt(K1) * priceSpread) / (BigInt(1000) * BigInt(strikePrice)))
         const americanTimeValue = europeanTimeValue + (europeanTimeValue * BigInt(K2) * sqrtDuration) / (BigInt(1000) * BigInt(177584))
-        console.log("getOptionPrice3", europeanTimeValue, americanTimeValue, americanTimeValue - europeanTimeValue, parseFloat(sqrtDuration) / 177584)
+        //console.log("getOptionPrice3", europeanTimeValue, americanTimeValue, americanTimeValue - europeanTimeValue, parseFloat(sqrtDuration) / 177584)
         var optionPrice = intrinsicPrice + europeanTimeValue;
         if (optionStyle === 1) { // american
             optionPrice = intrinsicPrice + americanTimeValue;
         }
         optionPrice = optionPrice - optionPrice % BigInt(10000)
-        console.log("getOptionPrice4", optionPrice)
+        //console.log("getOptionPrice4", optionPrice)
         return optionPrice;
     } catch(e) {
         console.log("Error getOptionPrice", e);

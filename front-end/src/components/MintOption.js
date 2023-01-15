@@ -1,5 +1,5 @@
 import React, { Fragment } from 'react';
-import { DAPP_UI_MINT_FEE, MIN_NANOERG_BOX_VALUE, OPTION_STYLES, TX_FEE, UNDERLYING_TOKENS } from '../utils/constants';
+import { DAPP_UI_MINT_FEE, MIN_NANOERG_BOX_VALUE, OPTION_STYLES, OPTION_TYPES, TX_FEE, UNDERLYING_TOKENS } from '../utils/constants';
 import ThemedSelect from './ThemedSelect';
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
@@ -11,7 +11,8 @@ import { formatERGAmount } from '../utils/utils';
 import { OptionPriceUnderlyingPriveChart } from './OptionPriceUnderlyingPriveChart';
 
 
-const optionsStyles = OPTION_STYLES.map(opt_type => { return { value: opt_type.label, label: opt_type.label } });
+const optionsTypes = OPTION_TYPES.map(opt_type => { return { value: opt_type.label, label: opt_type.label } });
+const optionsStyles = OPTION_STYLES.map(opt_style => { return { value: opt_style.label, label: opt_style.label } });
 const underlyingTokens = UNDERLYING_TOKENS.map(u_tok => { return { value: u_tok.label, label: u_tok.label } });
 var initMaturityDate = new Date(new Date().toDateString());
 //initMaturityDate.setTime(0);
@@ -21,6 +22,7 @@ export default class MintOption extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
+            optionType: optionsTypes[0].label,
             optionStyle: optionsStyles[0].label,
             underlyingToken: underlyingTokens[0].label,
             optionAmount: 10,
@@ -32,7 +34,9 @@ export default class MintOption extends React.Component {
             K1: 500,
             K2: 300,
             oraclePrice: 1,
+            oraclePriceGraph: 1,
         };
+        this.setOptionType = this.setOptionType.bind(this);
         this.setOptionStyle = this.setOptionStyle.bind(this);
         this.setUnderlyingToken = this.setUnderlyingToken.bind(this);
         this.setOptionAmount = this.setOptionAmount.bind(this);
@@ -46,12 +50,13 @@ export default class MintOption extends React.Component {
         this.updatePricesFromOracle = this.updatePricesFromOracle.bind(this);
     }
 
-    setOptionStyle = (type) => { this.setState({ optionStyle: type, }); };
+    setOptionType = (type) => { this.setState({ optionType: type, }); };
+    setOptionStyle = (style) => { this.setState({ optionStyle: style, }); };
     setUnderlyingToken = (tokName) => { this.setState({ underlyingToken: tokName, }); this.updatePricesFromOracle(tokName); };
     setOptionAmount = (amount) => { this.setState({ optionAmount: amount.replace(/[^0-9]/g, "") }); };
     setShareSize = (shareSize) => { this.setState({ shareSize: shareSize.replace(/[^0-9]/g, "") }); };
     setStrikePrice = (strikePrice) => { this.setState({ strikePrice: strikePrice.replace(/[^0-9]/g, "") }); };
-    setOraclePrice = (oraclePrice) => { this.setState({ oraclePrice: oraclePrice.replace(/[^0-9]/g, "") }); };
+    setOraclePriceGraph = (oraclePrice) => { this.setState({ oraclePriceGraph: oraclePrice.replace(/[^0-9]/g, "") }); };
     setMaturityDate = (date) => { this.setState({ maturityDate: date }); };
     setPricingDate = (date) => { this.setState({ pricingDate: date }); };
     setSigma = (s) => { this.setState({ sigma: s.replace(/[^0-9]/g, "") }); };
@@ -67,7 +72,7 @@ export default class MintOption extends React.Component {
     async updatePricesFromOracle(tokName) {
         const underlyingToken = UNDERLYING_TOKENS.find(tok => tok.label === tokName);
         const oraclePrice = await getOraclePrice(underlyingToken.oracleNFTID)
-        this.setState({ strikePrice: oraclePrice, oraclePrice: oraclePrice });
+        this.setState({ strikePrice: oraclePrice, oraclePrice: oraclePrice, oraclePriceGraph: oraclePrice });
     }
 
     async mintOption() {
@@ -75,11 +80,12 @@ export default class MintOption extends React.Component {
             //console.log(this.state.maturityDate.toLocaleString());
             const maturityDate = new Date(Date.UTC(this.state.maturityDate.getFullYear(), this.state.maturityDate.getMonth(), this.state.maturityDate.getDate(), this.state.maturityDate.getHours()));
 
+            const optionTypeNum = OPTION_TYPES.find(o => o.label === this.state.optionType).id;
             const optionStyleNum = OPTION_STYLES.find(o => o.label === this.state.optionStyle).id;
-            console.log("optionStyle", this.state.optionStyle, optionStyleNum);
+            //console.log("optionStyle", this.state.optionStyle, optionStyleNum);
             const underlyingToken = UNDERLYING_TOKENS.find(tok => tok.label === this.state.underlyingToken);
 
-            await createOptionRequest(optionStyleNum, underlyingToken, this.state.optionAmount, this.state.shareSize,
+            await createOptionRequest(optionTypeNum, optionStyleNum, underlyingToken, this.state.optionAmount, this.state.shareSize,
                 this.state.strikePrice, maturityDate, this.state.sigma, this.state.K1, this.state.K2);
         } catch (e) {
             console.log(e);
@@ -96,6 +102,17 @@ export default class MintOption extends React.Component {
             <Fragment >
                 <div className="card zonemint p-1 m-2">
                     <div className='card zonemint d-flex flex-column m-2 p-2'>
+                        <div className='d-flex flex-row justify-content-between align-items-end'>
+                            <label htmlFor="optionType" className='col-sm-2 d-flex align-items-start'>Type</label>
+                            <div className='w-100 d-flex flex-row'>
+                                <ThemedSelect id="optionType"
+                                    value={this.state.optionType}
+                                    onChange={(type) => this.setOptionType(type.value)}
+                                    options={optionsTypes}
+                                />
+                                <div></div>
+                            </div>
+                        </div>
                         <div className='d-flex flex-row justify-content-between align-items-end'>
                             <label htmlFor="optionStyle" className='col-sm-2 d-flex align-items-start'>Style</label>
                             <div className='w-100 d-flex flex-row'>
@@ -193,11 +210,20 @@ export default class MintOption extends React.Component {
                         <div className='d-flex flex-row justify-content-center'>
                             <strong>
                                 Cost: &nbsp;
-                                {formatERGAmount(3 * TX_FEE + MIN_NANOERG_BOX_VALUE + DAPP_UI_MINT_FEE)} ERG -
-                                {(this.state.shareSize * this.state.optionAmount + 1 /
-                                    Math.pow(10, UNDERLYING_TOKENS.find(tok => tok.label === this.state.underlyingToken).decimals))
-                                    .toFixed(UNDERLYING_TOKENS.find(tok => tok.label === this.state.underlyingToken).decimals)}
-                                {" " + this.state.underlyingToken}
+                                {
+                                    this.state.optionType === 'Call' ?
+                                        <div>
+                                            {formatERGAmount(3 * TX_FEE + MIN_NANOERG_BOX_VALUE + DAPP_UI_MINT_FEE)} ERG -
+                                            {(this.state.shareSize * this.state.optionAmount + 1 /
+                                                Math.pow(10, UNDERLYING_TOKENS.find(tok => tok.label === this.state.underlyingToken).decimals))
+                                                .toFixed(UNDERLYING_TOKENS.find(tok => tok.label === this.state.underlyingToken).decimals)}
+                                            {" " + this.state.underlyingToken}
+                                        </div>
+                                        :
+                                        <div>
+                                            {formatERGAmount(3 * TX_FEE + MIN_NANOERG_BOX_VALUE + DAPP_UI_MINT_FEE + this.state.shareSize * this.state.optionAmount * this.state.strikePrice)} ERG
+                                        </div>
+                                }
                             </strong>
                         </div>
                     </div>
@@ -221,15 +247,16 @@ export default class MintOption extends React.Component {
                                 <input type="text"
                                     id="underlyingPrice"
                                     className="form-control input-dark col-sm-4"
-                                    onChange={e => this.setStrikePrice(e.target.value)}
-                                    value={this.state.strikePrice}
+                                    onChange={e => this.setOraclePriceGraph(e.target.value)}
+                                    value={this.state.oraclePriceGraph}
                                     autoComplete="off"
                                 />
                             </div>
                             <OptionPriceTimeChart
+                                optionType={this.state.optionType}
                                 optionStyle={this.state.optionStyle}
                                 maturityDate={this.state.maturityDate}
-                                oraclePrice={this.state.oraclePrice}
+                                oraclePrice={this.state.oraclePriceGraph}
                                 strikePrice={this.state.strikePrice}
                                 shareSize={this.state.shareSize}
                                 sigma={this.state.sigma}
@@ -252,6 +279,7 @@ export default class MintOption extends React.Component {
                                 </div>
                             </div>
                             <OptionPriceUnderlyingPriveChart
+                                optionType={this.state.optionType}
                                 optionStyle={this.state.optionStyle}
                                 maturityDate={this.state.maturityDate}
                                 oraclePrice={this.state.oraclePrice}

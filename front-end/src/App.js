@@ -3,6 +3,7 @@ import React from 'react';
 import InputAddress from './components/InputAddress';
 import Footer from './components/Footer';
 import MintTabs from './components/MintTabs';
+import SigmaOLogo from './images/sigmaOLogo_24dp.svg';
 
 export default class App extends React.Component {
 
@@ -12,7 +13,7 @@ export default class App extends React.Component {
         <div className="w-100 d-flex flex-column align-items-center">
           <div className="w-100 d-flex flex-row justify-content-between align-items-center bggrey">
             <div className='d-flex flex-column  align-items-start m-1 p-1'>
-              <h2>&nbsp;Sigma'O</h2>
+              <h2><img src={SigmaOLogo} alt='logo' width={48} />&nbsp;Sigma'O</h2>
               
             </div>
             <InputAddress />
