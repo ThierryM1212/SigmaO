@@ -1,7 +1,7 @@
 # Sigma'O
 
 - The goal of the project is to provide a smart contract allowing to issue tokens behaving like an option.
-- First version only implement CALL option that can be European or American.
+- The option type can be CALL or PUT with European or American style.
 - The underlying token needs an Oracle that provides the current price of the token in nanoERG.
 - The contract is permission less and fully hedged
 - A configurable fee for the UI provider is available
@@ -39,7 +39,8 @@ http://www.espenhaug.com/black_scholes.html
     - K2: american factor
 
     Option price = intrinsic price + time value
-    intrinsic price = max(0, (P - Sp) * Ss)
+    Call intrinsic price = max(0, (P - Sp) * Ss)
+    Put intrinsic price = max(0, (Sp - P) * Ss)
     European option time value = 0.4 * σ * Ss * Sp * SQRT(T) *(1 - K1 * ABS(P - Sp) / Sp)
     American option time value = European option time value * (1 + K2 * SQRT(T))
 
@@ -51,6 +52,5 @@ http://www.espenhaug.com/black_scholes.html
     - Max duration: 3 years
     - Frozen period (cannot be sold anymore): 4h before expiration
     - European exercise period: 24h
-
 
 
