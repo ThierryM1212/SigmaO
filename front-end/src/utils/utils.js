@@ -51,6 +51,22 @@ export function maxBigInt(...values) {
     return maxValue;
 }
 
+export function minBigInt(...values) {
+    if (values.length < 1) {
+        return Infinity;
+    }
+
+    let minValue = values.shift();
+
+    for (const value of values) {
+        if (value < minValue) {
+            minValue = value;
+        }
+    }
+
+    return minValue;
+}
+
 export function getOptionPrice(optionType, optionStyle, currentDateUNIX, maturityDate, currentOraclePrice, strikePrice, shareSize, sigma, K1, K2) {
     try {
         const remainingDuration = BigInt(maturityDate) - BigInt(currentDateUNIX);
@@ -79,6 +95,13 @@ export function getOptionPrice(optionType, optionStyle, currentDateUNIX, maturit
         }
         optionPrice = optionPrice - optionPrice % BigInt(10000)
         //console.log("getOptionPrice4", optionPrice)
+        if (optionType === 0) { // Call option cannot cost more the underlying asset
+            optionPrice = minBigInt(BigInt(currentOraclePrice) * BigInt(shareSize), optionPrice);
+        } else { // Put option cannot cost more than the exercise price
+            optionPrice = minBigInt(BigInt(strikePrice) * BigInt(shareSize), optionPrice);
+        }
+
+        //console.log("getOptionPrice5", optionPrice)
         return optionPrice;
     } catch(e) {
         console.log("Error getOptionPrice", e);

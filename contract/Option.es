@@ -52,12 +52,14 @@
     }
     val isEmpty: Boolean = valueIn == MinOptionReserveValue    && 
                            selfToken0._2 == 1L                 && // 1 option to stay in the box
-                           selfToken1._2 <= 1L                    // Call 1 token to stay, Put 0 tokens
+                           selfToken1._2 <= 1L                    // Call 1 token to stay, Put 0 token
+
+    val validOptionValue: Boolean =  OUTPUTS(0).value >= MinOptionReserveValue
 
     val validBasicReplicatedOutput0: Boolean = if (OUTPUTS(0).propositionBytes == SELF.propositionBytes) {
         output0Token0._1 == optionTokenIDIn                        &&
         output0Token0._2 >= 1L                                     && // 1 to stay in the box
-        OUTPUTS(0).value >= MinOptionReserveValue                  &&
+        validOptionValue                                           &&
         (
             (   // Call
                 isCall                                        && 
@@ -78,19 +80,19 @@
 
     val validMintOption: Boolean = if (!isMinted && INPUTS.size == 1 && remainingDuration >= MinOptionDuration) {
         val validMintedOption: Boolean = 
-            OUTPUTS(0).value >= MinOptionReserveValue       &&
+            validOptionValue                                &&
             OUTPUTS(0).R7[Box].get == SELF                  &&
             (
                 (  // Call
                     isCall                                                                   &&
                     output0Token1._2 == selfToken0._2                                        && // keep all underlying tokens
                     output0Token0._2 == ((selfToken0._2 - 1L) / shareSizeAdjusted) + 1L      && // minted option 1 stay in the box for both
-                    OUTPUTS(0).tokens.size == 2
+                    OUTPUTS(0).tokens.size == 1
                 ) ||
                 (   // Put
                     !isCall                                                                     &&
                     OUTPUTS(0).tokens.size == 1                                                 &&
-                    output0Token0._2 == (SELF.value - MinOptionReserveValue) / strikePrice + 1L // minted option 1 stay in the box
+                    output0Token0._2 == (valueIn - MinOptionReserveValue) / strikePrice + 1L // minted option 1 stay in the box
                 )
             )
         
@@ -104,7 +106,7 @@
 
     val validCloseOptionContract: Boolean = if ((isExpired && !isExercible) || isEmpty) {
         OUTPUTS(0).propositionBytes == issuerPK.propBytes          &&
-        OUTPUTS(0).value >= SELF.value - TxFee                     &&
+        OUTPUTS(0).value >= valueIn - TxFee                        &&
         output0Token0._1 == selfToken1._1                          &&
         output0Token0._2 == selfToken1._2
     } else {
@@ -149,7 +151,12 @@
             intrinsicPrice + americanTimeValue 
         }
         val pricePrecision: Long = 10000L
-        val optionPrice: Long = optionPriceTmp - (optionPriceTmp % pricePrecision)
+        val optionPriceTmp2: Long = optionPriceTmp - (optionPriceTmp % pricePrecision)
+        val optionPrice: Long = if (isCall) { // Call option cannot cost more the underlying asset
+            min(oraclePrice * shareSize, optionPriceTmp2)
+        } else { // Put option cannot cost more than the exercise price
+            min(strikePrice * shareSize, optionPriceTmp2)
+        }
 
         val deliveredOptions: Long = selfToken0._2 - output0Token0._2
         val totalOptionPrice: Long = deliveredOptions * optionPrice
@@ -180,7 +187,7 @@
         val exercisedAmountReserve: Long = if (isCall) {
             selfToken1._2 - output0Token1._2
         } else {
-            SELF.value - OUTPUTS(0).value
+            valueIn - OUTPUTS(0).value
         }
         val numberOptionExpected: Long = if (isCall) {
             exercisedAmountReserve / shareSizeAdjusted

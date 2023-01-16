@@ -252,17 +252,19 @@ export default class MintOption extends React.Component {
                                     autoComplete="off"
                                 />
                             </div>
-                            <OptionPriceTimeChart
-                                optionType={this.state.optionType}
-                                optionStyle={this.state.optionStyle}
-                                maturityDate={this.state.maturityDate}
-                                oraclePrice={this.state.oraclePriceGraph}
-                                strikePrice={this.state.strikePrice}
-                                shareSize={this.state.shareSize}
-                                sigma={this.state.sigma}
-                                K1={this.state.K1}
-                                K2={this.state.K2}
-                            />
+                            <div className='graph-container'>
+                                <OptionPriceTimeChart
+                                    optionType={this.state.optionType}
+                                    optionStyle={this.state.optionStyle}
+                                    maturityDate={this.state.maturityDate}
+                                    oraclePrice={this.state.oraclePriceGraph}
+                                    strikePrice={this.state.strikePrice}
+                                    shareSize={this.state.shareSize}
+                                    sigma={this.state.sigma}
+                                    K1={this.state.K1}
+                                    K2={this.state.K2}
+                                />
+                            </div>
                         </div>
                         <div className='d-flex flex-column m-1 p-1 zonegraph'>
                             <div className='d-flex flex-row justify-content-start align-items-end m-1 p-1'>
@@ -278,18 +280,20 @@ export default class MintOption extends React.Component {
                                     />
                                 </div>
                             </div>
-                            <OptionPriceUnderlyingPriveChart
-                                optionType={this.state.optionType}
-                                optionStyle={this.state.optionStyle}
-                                maturityDate={this.state.maturityDate}
-                                oraclePrice={this.state.oraclePrice}
-                                strikePrice={this.state.strikePrice}
-                                shareSize={this.state.shareSize}
-                                sigma={this.state.sigma}
-                                K1={this.state.K1}
-                                K2={this.state.K2}
-                                pricingDate={this.state.pricingDate}
-                            />
+                            <div className='graph-container'>
+                                <OptionPriceUnderlyingPriveChart
+                                    optionType={this.state.optionType}
+                                    optionStyle={this.state.optionStyle}
+                                    maturityDate={this.state.maturityDate}
+                                    oraclePrice={this.state.oraclePrice}
+                                    strikePrice={this.state.strikePrice}
+                                    shareSize={this.state.shareSize}
+                                    sigma={this.state.sigma}
+                                    K1={this.state.K1}
+                                    K2={this.state.K2}
+                                    pricingDate={this.state.pricingDate}
+                                />
+                            </div>
                         </div>
                     </div>
                 </div >

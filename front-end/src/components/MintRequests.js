@@ -84,7 +84,7 @@ export default class MintRequests extends React.Component {
                                         <td>{optionParams[5] / 10} %</td>
                                         <td>{optionParams[6] / 10} %</td>
                                         <td>
-                                            <button className='btn btn-blue' onClick={() => this.mintOption(box)}>Mint</button>
+                                            <button className='btn btn-yellow' onClick={() => this.mintOption(box)}>Mint</button>
                                             <button className='btn btn-blue' onClick={() => this.refundRequest(box)}>Refund</button>
                                         </td>
                                     </tr>

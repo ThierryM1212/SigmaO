@@ -133,7 +133,7 @@ export default class Options extends React.Component {
                                         <td>
                                             <button className='btn btn-blue' onClick={() => this.buyOption(creationBox.full.boxId, totalOptionPrice)}>Buy</button>
                                             <button className='btn btn-blue' onClick={() => this.exerciseOption(creationBox.full.boxId)}>Exercise</button>
-                                            <button className='btn btn-blue' onClick={() => this.closeOption(box, creationBox.issuerAddress)}>Close</button>
+                                            <button className='btn btn-yellow' onClick={() => this.closeOption(box, creationBox.issuerAddress)}>Close</button>
                                         </td>
                                     </tr>
                                 })

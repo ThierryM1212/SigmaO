@@ -32,6 +32,7 @@ ChartJS.defaults.color = 'rgba(255,255,255,0.9)'
 
 export const options = {
     responsive: true,
+    maintainAspectRatio: false,
     interaction: {
         mode: 'index',
         intersect: false,

@@ -63,7 +63,7 @@ export default class ExerciseOptionRequests extends React.Component {
                                         <td>{formatERGAmount(exerciseRequest.value)} ERG</td>
                                         <td>
                                             <div className='d-flex flex-row justify-content-center'>
-                                                <button className='btn btn-blue' onClick={() => this.processExercise(exerciseRequest.full)}>Process</button>
+                                                <button className='btn btn-yellow' onClick={() => this.processExercise(exerciseRequest.full)}>Process</button>
                                                 &nbsp;
                                                 <button className='btn btn-blue' onClick={() => this.refundRequest(exerciseRequest.full)}>Refund</button>
                                             </div>

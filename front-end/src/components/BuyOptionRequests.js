@@ -61,7 +61,7 @@ export default class BuyOptionRequests extends React.Component {
                                         <th>{buyRequest.optionAmount}</th>
                                         <th>{buyRequest.maxTotalPrice}</th>
                                         <td>
-                                            <button className='btn btn-blue' onClick={() => this.processBuy(buyRequest.full)}>Process</button>
+                                            <button className='btn btn-yellow' onClick={() => this.processBuy(buyRequest.full)}>Process</button>
                                             <button className='btn btn-blue' onClick={() => this.refundRequest(buyRequest.full)}>Refund</button>
                                         </td>
                                     </tr>

@@ -2,7 +2,7 @@ import { waitingAlert, displayTransaction } from "../utils/Alerts";
 import { encodeHexConst, encodeLong, encodeLongArray, encodeStrConst, ergoTreeToAddress, sigmaPropToAddress } from "./serializer";
 import { BUY_OPTION_REQUEST_SCRIPT_ADDRESS, DAPP_UI_ERGOTREE, DAPP_UI_FEE, DAPP_UI_MINT_FEE, MIN_NANOERG_BOX_VALUE, OPTION_TYPES, TX_FEE, UNDERLYING_TOKENS } from "../utils/constants";
 import { getTokenUtxos, getUtxos, walletSignTx } from "./wallet";
-import { boxById, boxByTokenId, currentHeight, searchUnspentBoxesUpdated, sendTx } from "./explorer";
+import { boxById, boxByIdv1, boxByTokenId, currentHeight, searchUnspentBoxesUpdated, sendTx } from "./explorer";
 import { createTransaction, signTransaction } from "./wasm";
 import { maxBigInt } from "../utils/utils";
 import JSONBigInt from 'json-bigint';
@@ -63,7 +63,7 @@ export async function createOptionRequest(optionType, optionStyle, underlyingTok
     mintBoxBuilder.set_register_value(5, await encodeHexConst(DAPP_UI_ERGOTREE));
     mintBoxBuilder.set_register_value(6, await encodeStrConst("0"));
 
-    const box = await boxById("a4577000af55f79df12e097a937b08fa8a2fc5292fce00acd3bad8d962139f71"); // random small box
+    const box = await boxById("84844f06f3dc31e92770376ccd2b2e47f218c9666d9fef7f5421040c75f83ad7"); // small box with R4, R5, R6 Call[Byte], R7 Box
     const boxWASM = (await ergolib).ErgoBox.from_json(JSONBigInt.stringify(box));
     mintBoxBuilder.set_register_value(7, (await ergolib).Constant.from_ergo_box(boxWASM));
 
@@ -649,6 +649,8 @@ export async function test() {
 
     var utxos = await getUtxos(txAmount);
 
+    
+
     const inputsWASM = (await ergolib).ErgoBoxes.from_boxes_json(utxos);
     const dataListWASM = new (await ergolib).ErgoBoxAssetsDataList();
     const boxSelection = new (await ergolib).BoxSelection(inputsWASM, dataListWASM);
@@ -660,31 +662,41 @@ export async function test() {
         mintBoxValue,
         (await ergolib).Contract.pay_to_address((await ergolib).Address.from_base58("2fp8i8rY9B2Fs91NZD5vncK")),
         creationHeight);
-    const SQRT = [
-        ["0", "0"],
-        ["3600000", "1897"],
-        ["14400000", "3795"],
-        ["86400000", "9295"],
-        ["172800000", "13145"],
-        ["432000000", "20785"],
-        ["864000000", "29394"],
-        ["1728000000", "41569"],
-        ["2592000000", "50912"],
-        ["5184000000", "72000"],
-        ["12960000000", "113842"],
-        ["20736000000", "144000"],
-        ["31536000000", "177584"],
-        ["47304000000", "217495"],
-        ["63072000000", "251141"],
-        ["94608000000", "307584"],
-    ];
 
+    mintBoxBuilder.set_register_value(4, await encodeStrConst(" "));
+    mintBoxBuilder.set_register_value(5, await encodeStrConst(" "));
+    mintBoxBuilder.set_register_value(6, await encodeStrConst(" "));
+    const smallBoxId = 'd80cc19ca8e54529e1a9bc9506efcd7feeb7536eb9ced634e9a9c19e05244164';
+    const smallboxJSON = await boxByIdv1(smallBoxId);
+    console.log("smallboxJSON", smallboxJSON)
+    const smallboxWASM = (await ergolib).ErgoBox.from_json(JSONBigInt.stringify(smallboxJSON));
+    mintBoxBuilder.set_register_value(7, (await ergolib).Constant.from_ergo_box(smallboxWASM));
 
-    const SQRTWASM = await Promise.all(SQRT.map(async jstuple => (await ergolib).array_as_tuple(jstuple)));
-    const SQRTWASM2 = (await ergolib).Constant.from_js(SQRTWASM);
-    console.log("SQRTWASM2", SQRTWASM2.dbg_inner())
+    //const SQRT = [
+    //    ["0", "0"],
+    //    ["3600000", "1897"],
+    //    ["14400000", "3795"],
+    //    ["86400000", "9295"],
+    //    ["172800000", "13145"],
+    //    ["432000000", "20785"],
+    //    ["864000000", "29394"],
+    //    ["1728000000", "41569"],
+    //    ["2592000000", "50912"],
+    //    ["5184000000", "72000"],
+    //    ["12960000000", "113842"],
+    //    ["20736000000", "144000"],
+    //    ["31536000000", "177584"],
+    //    ["47304000000", "217495"],
+    //    ["63072000000", "251141"],
+    //    ["94608000000", "307584"],
+    //];
+//
+//
+    //const SQRTWASM = await Promise.all(SQRT.map(async jstuple => (await ergolib).array_as_tuple(jstuple)));
+    //const SQRTWASM2 = (await ergolib).Constant.from_js(SQRTWASM);
+    //console.log("SQRTWASM2", SQRTWASM2.dbg_inner())
 
-    mintBoxBuilder.set_register_value(4, SQRTWASM2);
+    //mintBoxBuilder.set_register_value(4, SQRTWASM2);
 
 
     try {
