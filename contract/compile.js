@@ -10,7 +10,7 @@ const scripts = [
 ]
 
 const command = 'java -cp ErgoScriptCompiler-assembly-0.1.jar Compile ' + scripts[0] + ' ' + symbolFile;
-const childPorcess0 = exec(command, function (err, stdout, stderr) {
+const childProcess0 = exec(command, function (err, stdout, stderr) {
     if (err) {
         console.log(err)
     }
@@ -28,7 +28,7 @@ const childPorcess0 = exec(command, function (err, stdout, stderr) {
     fs.writeFile(symbolFilePrefixed, JSON.stringify(symbolFileJSON, null, 4), function writeJSON(err) {
         if (err) return console.log(err);
         const command1 = 'java -cp ErgoScriptCompiler-assembly-0.1.jar Compile ' + scripts[1] + ' ' + symbolFile;
-        const childPorcess1 = exec(command1, function (err, stdout, stderr) {
+        const childProcess1 = exec(command1, function (err, stdout, stderr) {
             if (err) {
                 console.log(err)
             }
@@ -39,7 +39,7 @@ const childPorcess0 = exec(command, function (err, stdout, stderr) {
         })
 
         const command2 = 'java -cp ErgoScriptCompiler-assembly-0.1.jar Compile ' + scripts[2] + ' ' + symbolFile;
-        const childPorcess2 = exec(command2, function (err, stdout, stderr) {
+        const childProcess2 = exec(command2, function (err, stdout, stderr) {
             if (err) {
                 console.log(err)
             }
