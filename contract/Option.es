@@ -1,6 +1,7 @@
 {   
     // Option Call contract ERG / underlying token 
     // needs an Oracle like SigUSD, with a tokenId Oracle box identifier and price in nanoerg per token in the R4
+
     val valueIn: Long = SELF.value
     val optionName: Coll[Byte] = SELF.R4[Coll[Byte]].get
     val selfToken0: (Coll[Byte], Long) = SELF.tokens.getOrElse(0, (Coll[Byte](),0L))
@@ -87,7 +88,7 @@
                     isCall                                                                   &&
                     output0Token1._2 == selfToken0._2                                        && // keep all underlying tokens
                     output0Token0._2 == ((selfToken0._2 - 1L) / shareSizeAdjusted) + 1L      && // minted option 1 stay in the box for both
-                    OUTPUTS(0).tokens.size == 1
+                    OUTPUTS(0).tokens.size == 2
                 ) ||
                 (   // Put
                     !isCall                                                                     &&
@@ -151,7 +152,7 @@
             intrinsicPrice + americanTimeValue 
         }
         val pricePrecision: Long = 10000L
-        val optionPriceTmp2: Long = optionPriceTmp - (optionPriceTmp % pricePrecision)
+        val optionPriceTmp2: Long = max(pricePrecision, optionPriceTmp - (optionPriceTmp % pricePrecision)) // round option price, set a minimum
         val optionPrice: Long = if (isCall) { // Call option cannot cost more the underlying asset
             min(oraclePrice * shareSize, optionPriceTmp2)
         } else { // Put option cannot cost more than the exercise price

@@ -93,7 +93,7 @@ export function getOptionPrice(optionType, optionStyle, currentDateUNIX, maturit
         if (optionStyle === 1) { // american
             optionPrice = intrinsicPrice + americanTimeValue;
         }
-        optionPrice = optionPrice - optionPrice % BigInt(10000)
+        optionPrice = maxBigInt(BigInt(10000), optionPrice - optionPrice % BigInt(10000)) // round option price, set a minimum
         //console.log("getOptionPrice4", optionPrice)
         if (optionType === 0) { // Call option cannot cost more the underlying asset
             optionPrice = minBigInt(BigInt(currentOraclePrice) * BigInt(shareSize), optionPrice);
