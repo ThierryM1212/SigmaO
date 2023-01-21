@@ -1,7 +1,8 @@
-import { get } from './rest';
+import { get, getText } from './rest';
 import JSONBigInt from 'json-bigint';
 import { DEFAULT_EXPLORER_API_ADDRESS } from '../utils/constants';
 import { addressToErgoTree, ergoTreeToTemplateHash } from './serializer';
+import { parseUtxos } from './wasm';
 
 
 export const explorerApi = DEFAULT_EXPLORER_API_ADDRESS + 'api/v0';
@@ -17,6 +18,11 @@ async function getRequestV1(url) {
     return get(explorerApiV1 + url).then(res => {
         return { data: res };
     });
+}
+
+async function getRequestV1Text(url) {
+    return getText(explorerApiV1 + url);
+
 }
 
 async function postTx(url, body = {}, apiKey = '') {
@@ -95,10 +101,19 @@ export async function boxByIdv1(id) {
     return res.data;
 }
 
+export async function boxByIdv2(id) {
+    const res = await getRequestV1Text(`/boxes/${id}`);
+    return JSONBigInt.parse(res) ;
+}
+
 /////
 export async function boxByTokenId(tokenId) {
     const res = await getRequestV1(`/boxes/unspent/byTokenId/${tokenId}`);
     return res.data.items;
+}
+export async function boxByTokenId2(tokenId) {
+    const res = await getRequestV1Text(`/boxes/unspent/byTokenId/${tokenId}`);
+    return parseUtxos(JSONBigInt.parse(res).items);
 }
 
 /////
@@ -162,7 +177,7 @@ export async function searchUnspentBoxesUpdated(address, tokens, registers = {})
     const [spentBlobs, newBlobs] = await getSpentAndUnspentBoxesFromMempool(address);
     const spentBlobBoxIds = spentBlobs.map(box => box.boxId);
     console.log("searchUnspentBoxesUpdated", newBlobs
-    .concat(currentBlobBoxes));
+        .concat(currentBlobBoxes));
     var updatedBlobBoxes = newBlobs
         .concat(currentBlobBoxes)
         .filter(box => box.address === address)
@@ -187,17 +202,33 @@ export async function getBalanceForAddress(addr) {
 }
 
 export async function getOraclePrice(oracleNFTID) {
+    console.log("getOraclePrice", oracleNFTID);
     const oracleBoxes = await boxByTokenId(oracleNFTID);
     console.log("oracleBoxes", oracleBoxes);
     if (oracleBoxes && oracleBoxes.length == 1) {
-        try {
-            return oracleBoxes[0].additionalRegisters.R4.renderedValue
-        } catch(e) {
+        try { 
+            if (oracleBoxes[0].assets.length === 1) { // Oracle
+                return oracleBoxes[0].additionalRegisters.R4.renderedValue
+            } else { // AMM LP box
+                // oracleBox.value / (oracleBox.tokens(2)._2 / underlyingAssetDecimalFactor)
+                console.log("oracleBox", oracleBoxes[0]);
+                const nanoergValue = parseInt(oracleBoxes[0].value)
+                const tokenAmount = parseInt(oracleBoxes[0].assets[2].amount)
+                const tokenDecimals= parseInt(oracleBoxes[0].assets[2].decimals)
+
+                const oraclePrice = Math.round( nanoergValue / ( tokenAmount / Math.pow(10, tokenDecimals))).toString();
+                console.log("oraclePrice AMM", oraclePrice);
+                return oraclePrice;
+            }
+
+            
+        } catch (e) {
             console.log(e);
-            return "0";
+            return "1";
         }
     } else {
-        return "0";
+        console.log("getOraclePrice not found");
+        return "1";
     }
 }
 

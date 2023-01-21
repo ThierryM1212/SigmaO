@@ -8,6 +8,7 @@ import { buyOptionRequest, closeOptionExpired, exerciseOptionRequest } from '../
 import { promptOptionAmount } from '../utils/Alerts';
 import { formatERGAmount, formatLongString } from '../utils/utils';
 import { OptionPriceTimeChart } from './OptionPriceTimeChart';
+import { ca } from 'date-fns/locale';
 let ergolib = import('ergo-lib-wasm-browser');
 
 /* global BigInt */
@@ -24,9 +25,10 @@ export default class Options extends React.Component {
     async fetchOptions() {
         var allOptions = (await Promise.all(UNDERLYING_TOKENS.map(async token =>
             (await getUnspentBoxesForAddressUpdated(token.optionScriptAddress))
-                .filter(box => box.assets.length >= 1))
-        )).flat();
-
+                .filter(box => box.assets.length >= 1 && !box.additionalRegisters.R9
+                    ))
+        )).flat().filter(box => box);
+        console.log("allOptions0", allOptions)
         allOptions = await Promise.all(allOptions.map(async opt => {
             var res = { ...opt }
             const boxWASM = (await ergolib).ErgoBox.from_json(JSONBigInt.stringify(opt));
@@ -36,6 +38,7 @@ export default class Options extends React.Component {
             console.log("creationBox2", creationBox2)
             res["creationBox"] = creationBox2;
             return res;
+
         }))
         console.log("allOptions", allOptions)
         this.setState({ optionList: allOptions })

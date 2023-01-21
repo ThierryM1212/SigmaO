@@ -1,9 +1,9 @@
 import { waitingAlert, displayTransaction } from "../utils/Alerts";
 import { encodeHexConst, encodeLong, encodeLongArray, encodeStrConst, ergoTreeToAddress, sigmaPropToAddress } from "./serializer";
-import { BUY_OPTION_REQUEST_SCRIPT_ADDRESS, DAPP_UI_ERGOTREE, DAPP_UI_FEE, DAPP_UI_MINT_FEE, MIN_NANOERG_BOX_VALUE, OPTION_TYPES, TX_FEE, UNDERLYING_TOKENS } from "../utils/constants";
+import { BUY_OPTION_REQUEST_SCRIPT_ADDRESS, DAPP_UI_ERGOTREE, DAPP_UI_FEE, DAPP_UI_MINT_FEE, MIN_NANOERG_BOX_VALUE, OPTION_TYPES, SIGRSV_ORACLE_TOKEN_ID, TX_FEE, UNDERLYING_TOKENS } from "../utils/constants";
 import { getTokenUtxos, getUtxos, walletSignTx } from "./wallet";
-import { boxById, boxByIdv1, boxByTokenId, currentHeight, searchUnspentBoxesUpdated, sendTx } from "./explorer";
-import { createTransaction, signTransaction } from "./wasm";
+import { boxById, boxByIdv1, boxByIdv2, boxByTokenId, boxByTokenId2, currentHeight, searchUnspentBoxesUpdated, sendTx } from "./explorer";
+import { createTransaction, parseUtxo, signTransaction } from "./wasm";
 import { maxBigInt } from "../utils/utils";
 import JSONBigInt from 'json-bigint';
 import { OptionDef } from "../utils/OptionDef";
@@ -59,6 +59,7 @@ export async function createOptionRequest(optionType, optionStyle, underlyingTok
     var optionTypeText = OPTION_TYPES.find(o => o.id === optionType).label;
 
     const optionName = optionTypeText + "_" + optionStyleLetter + "_" + underlyingToken.label + "_ERG_" + strikePrice + "_" + maturityDate.toISOString().substring(0, 10) + "_per_" + shareSize;
+    console.log("optionName", optionName)
     mintBoxBuilder.set_register_value(4, await encodeStrConst(optionName));
     mintBoxBuilder.set_register_value(5, await encodeHexConst(DAPP_UI_ERGOTREE));
     mintBoxBuilder.set_register_value(6, await encodeStrConst("0"));
@@ -243,6 +244,7 @@ export async function buyOptionRequest(optionTokenID, optionAmount, optionMaxPri
         console.log(`building error: ${e}`);
         throw e;
     }
+    console.log("buyOptionRequest")
     var tx = await createTransaction(boxSelection, outputCandidates, [], address, utxos);
     console.log("create but option request tx", tx)
     const txId = await walletSignTx(alert, tx, address);
@@ -388,11 +390,15 @@ export async function processBuyRequest(box) {
     }
 
     // Oracle box
-    const oracleBoxes = await boxByTokenId(UNDERLYING_TOKENS.find(tok => tok.tokenId === optionDef.underlyingTokenId).oracleNFTID)
+    const oracleBoxes = await boxByTokenId2(UNDERLYING_TOKENS.find(tok => tok.tokenId === optionDef.underlyingTokenId).oracleNFTID)
 
     const tx = await createTransaction(boxSelection, outputCandidates, [oracleBoxes[0]], address, utxos);
+    console.log("processBuyRequest tx", tx);
     const wallet = (await ergolib).Wallet.from_mnemonic("", "");
-    const signedTx = JSONBigInt.parse(await signTransaction(tx, utxos, [oracleBoxes[0]], wallet));
+    console.log("processBuyRequest wallet", wallet);
+    const signedTxTmp = await signTransaction(tx, utxos, [parseUtxo(oracleBoxes[0]) ], wallet);
+    const signedTx = JSONBigInt.parse(signedTxTmp);
+    console.log("processBuyRequest signedTx", signedTx, signedTxTmp);
     const txId = await sendTx(signedTx);
     displayTransaction(txId)
     return txId;
@@ -641,73 +647,69 @@ export async function closeOptionExpired(box, issuerAddress) {
 
 
 export async function test() {
-    // mint SQRT box
-    const alert = waitingAlert("Preparing the transaction...");
 
-    const address = localStorage.getItem('address');
-    const txAmount = 2 * TX_FEE + MIN_NANOERG_BOX_VALUE;
-
-    var utxos = await getUtxos(txAmount);
-
-    
-
-    const inputsWASM = (await ergolib).ErgoBoxes.from_boxes_json(utxos);
-    const dataListWASM = new (await ergolib).ErgoBoxAssetsDataList();
-    const boxSelection = new (await ergolib).BoxSelection(inputsWASM, dataListWASM);
-    const creationHeight = await currentHeight();
-    const outputCandidates = (await ergolib).ErgoBoxCandidates.empty();
-    //const tokenAmountAdjusted = BigInt(tokAmount * Math.pow(10, tokDecimals)).toString();
-    const mintBoxValue = (await ergolib).BoxValue.from_i64((await ergolib).I64.from_str((TX_FEE + MIN_NANOERG_BOX_VALUE).toString()));
-    const mintBoxBuilder = new (await ergolib).ErgoBoxCandidateBuilder(
-        mintBoxValue,
-        (await ergolib).Contract.pay_to_address((await ergolib).Address.from_base58("2fp8i8rY9B2Fs91NZD5vncK")),
-        creationHeight);
-
-    mintBoxBuilder.set_register_value(4, await encodeStrConst(" "));
-    mintBoxBuilder.set_register_value(5, await encodeStrConst(" "));
-    mintBoxBuilder.set_register_value(6, await encodeStrConst(" "));
-    const smallBoxId = 'd80cc19ca8e54529e1a9bc9506efcd7feeb7536eb9ced634e9a9c19e05244164';
-    const smallboxJSON = await boxByIdv1(smallBoxId);
-    console.log("smallboxJSON", smallboxJSON)
-    const smallboxWASM = (await ergolib).ErgoBox.from_json(JSONBigInt.stringify(smallboxJSON));
-    mintBoxBuilder.set_register_value(7, (await ergolib).Constant.from_ergo_box(smallboxWASM));
-
-    //const SQRT = [
-    //    ["0", "0"],
-    //    ["3600000", "1897"],
-    //    ["14400000", "3795"],
-    //    ["86400000", "9295"],
-    //    ["172800000", "13145"],
-    //    ["432000000", "20785"],
-    //    ["864000000", "29394"],
-    //    ["1728000000", "41569"],
-    //    ["2592000000", "50912"],
-    //    ["5184000000", "72000"],
-    //    ["12960000000", "113842"],
-    //    ["20736000000", "144000"],
-    //    ["31536000000", "177584"],
-    //    ["47304000000", "217495"],
-    //    ["63072000000", "251141"],
-    //    ["94608000000", "307584"],
-    //];
-//
-//
-    //const SQRTWASM = await Promise.all(SQRT.map(async jstuple => (await ergolib).array_as_tuple(jstuple)));
-    //const SQRTWASM2 = (await ergolib).Constant.from_js(SQRTWASM);
-    //console.log("SQRTWASM2", SQRTWASM2.dbg_inner())
-
-    //mintBoxBuilder.set_register_value(4, SQRTWASM2);
-
-
-    try {
-        outputCandidates.add(mintBoxBuilder.build());
-    } catch (e) {
-        console.log(`building error: ${e}`);
-        throw e;
+    const testBox = {
+        "boxId": "45a39aae557fa69fe4e7cd719797517fd756fd5267abcf65582779663d95904b",
+        "value": "42490102187969",
+        "ergoTree": "1999030f0400040204020404040405feffffffffffffffff0105feffffffffffffffff01050004d00f040004000406050005000580dac409d819d601b2a5730000d602e4c6a70404d603db63087201d604db6308a7d605b27203730100d606b27204730200d607b27203730300d608b27204730400d6099973058c720602d60a999973068c7205027209d60bc17201d60cc1a7d60d99720b720cd60e91720d7307d60f8c720802d6107e720f06d6117e720d06d612998c720702720fd6137e720c06d6147308d6157e721206d6167e720a06d6177e720906d6189c72117217d6199c72157217d1ededededededed93c27201c2a793e4c672010404720293b27203730900b27204730a00938c7205018c720601938c7207018c72080193b17203730b9593720a730c95720e929c9c721072117e7202069c7ef07212069a9c72137e7214067e9c720d7e72020506929c9c721372157e7202069c7ef0720d069a9c72107e7214067e9c72127e7202050695ed720e917212730d907216a19d721872139d72197210ed9272189c721672139272199c7216721091720b730e",
+        "assets": [
+            {
+                "tokenId": "1d5afc59838920bb5ef2a8f9d63825a55b1d48e269d7cecee335d637c3ff5f3f",
+                "amount": "1",
+                "name": "",
+                "decimals": 0
+            },
+            {
+                "tokenId": "fa6326a26334f5e933b96470b53b45083374f71912b0d7597f00c2c7ebeb5da6",
+                "amount": "9223372009229823800",
+                "name": "",
+                "decimals": 0
+            },
+            {
+                "tokenId": "003bd19d0187117f130b62e1bcab0939929ff5c7709f843c5c4dd158949285d0",
+                "amount": "86259688",
+                "name": "SigRSV",
+                "decimals": 0
+            }
+        ],
+        "additionalRegisters": {
+            "R4": "04c60f"
+        },
+        "creationHeight": 922632,
+        "address": "5vSUZRZbdVbnk4sJWjg2uhL94VZWRg4iatK9VgMChufzUgdihgvhR8yWSUEJKszzV7Vmi6K8hCyKTNhUaiP8p5ko6YEU9yfHpjVuXdQ4i5p4cRCzch6ZiqWrNukYjv7Vs5jvBwqg5hcEJ8u1eerr537YLWUoxxi1M4vQxuaCihzPKMt8NDXP4WcbN6mfNxxLZeGBvsHVvVmina5THaECosCWozKJFBnscjhpr3AJsdaL8evXAvPfEjGhVMoTKXAb2ZGGRmR8g1eZshaHmgTg2imSiaoXU5eiF3HvBnDuawaCtt674ikZ3oZdekqswcVPGMwqqUKVsGY4QuFeQoGwRkMqEYTdV2UDMMsfrjrBYQYKUBFMwsQGMNBL1VoY78aotXzdeqJCBVKbQdD3ZZWvukhSe4xrz8tcF3PoxpysDLt89boMqZJtGEHTV9UBTBEac6sDyQP693qT3nKaErN8TCXrJBUmHPqKozAg9bwxTqMYkpmb9iVKLSoJxG7MjAj72SRbcqQfNCVTztSwN3cRxSrVtz4p87jNFbVtFzhPg7UqDwNFTaasySCqM",
+        "transactionId": "cdc4f570bb314439cf1d4cd5bea4f32fd02770e3894b853234ab73cf24e8e6fe",
+        "index": 0,
+        "extension": {}
     }
-    var tx = await createTransaction(boxSelection, outputCandidates, [], address, utxos);
-    console.log("mintOption tx", tx)
-    const txId = await walletSignTx(alert, tx, address);
-    displayTransaction(txId);
-    return txId;
+
+    const testBox2 = await boxByIdv2("45a39aae557fa69fe4e7cd719797517fd756fd5267abcf65582779663d95904b")
+    console.log("testBox2 ", testBox2)
+    try {
+
+        const boxWASM0 = (await ergolib).ErgoBox.from_json(JSONBigInt.stringify(testBox));
+        console.log("boxWASM0 ", boxWASM0.to_json())
+    } catch (e) {
+        console.log(e)
+    }
+
+    return;
+
+    const boxBytes = {
+        "boxId": "45a39aae557fa69fe4e7cd719797517fd756fd5267abcf65582779663d95904b",
+        "bytes": "c18fcafbcfd4091999030f0400040204020404040405feffffffffffffffff0105feffffffffffffffff01050004d00f040004000406050005000580dac409d819d601b2a5730000d602e4c6a70404d603db63087201d604db6308a7d605b27203730100d606b27204730200d607b27203730300d608b27204730400d6099973058c720602d60a999973068c7205027209d60bc17201d60cc1a7d60d99720b720cd60e91720d7307d60f8c720802d6107e720f06d6117e720d06d612998c720702720fd6137e720c06d6147308d6157e721206d6167e720a06d6177e720906d6189c72117217d6199c72157217d1ededededededed93c27201c2a793e4c672010404720293b27203730900b27204730a00938c7205018c720601938c7207018c72080193b17203730b9593720a730c95720e929c9c721072117e7202069c7ef07212069a9c72137e7214067e9c720d7e72020506929c9c721372157e7202069c7ef0720d069a9c72107e7214067e9c72127e7202050695ed720e917212730d907216a19d721872139d72197210ed9272189c721672139272199c7216721091720b730e88a838031d5afc59838920bb5ef2a8f9d63825a55b1d48e269d7cecee335d637c3ff5f3f01fa6326a26334f5e933b96470b53b45083374f71912b0d7597f00c2c7ebeb5da6b8deb28b99ffffff7f003bd19d0187117f130b62e1bcab0939929ff5c7709f843c5c4dd158949285d0e8ef90290104c60fcdc4f570bb314439cf1d4cd5bea4f32fd02770e3894b853234ab73cf24e8e6fe00"
+    }
+    console.log("boxBytes", boxBytes)
+    try {
+
+        const boxWASM1 = (await ergolib).ErgoBox.sigma_parse_bytes(Buffer.from(boxBytes.bytes, 'hex'));
+        console.log("boxWASM1 ", boxWASM1.to_json())
+        const boxWASM2 = (await ergolib).ErgoBox.from_json(boxWASM1.to_json());
+        console.log("boxWASM2 ", boxWASM2.to_json())
+    } catch (e) {
+        console.log(e)
+    }
+
+
+
+
 }

@@ -1,5 +1,5 @@
 import JSONBigInt from 'json-bigint';
-import { currentHeight, getExplorerBlockHeaders, getExplorerBlockHeadersFull } from './explorer';
+import { boxByIdv1, currentHeight, getExplorerBlockHeaders, getExplorerBlockHeadersFull } from './explorer';
 import { NANOERG_TO_ERG, TX_FEE } from '../utils/constants';
 import { TextEncoder } from 'text-decoding';
 import { byteArrayToBase64, encodeContract } from './serializer';
@@ -36,21 +36,19 @@ export async function createTransaction(boxSelection, outputCandidates, dataInpu
     var outputJs = await boxCandidatesToJsonMin(outputCandidates);
     const missingErgs = getMissingErg(utxos, outputJs) - BigInt(TX_FEE);
     const tokens = getMissingTokens(utxos, outputJs);
-    console.log("missing tokens", tokens);
+    console.log("missing tokens, missingErgs", tokens, missingErgs);
 
-    
-    
     if (!burnTokens && (missingErgs > 0 || Object.keys(tokens).length > 0)) {
         const changeBoxValue = (await ergolib).BoxValue.from_i64((await ergolib).I64.from_str(missingErgs.toString()));
         const changeBoxBuilder = new (await ergolib).ErgoBoxCandidateBuilder(
             changeBoxValue,
             (await ergolib).Contract.pay_to_address((await ergolib).Address.from_base58(changeAddress)),
             creationHeight);
-            for (const tokId of Object.keys(tokens)) {
-                const tokenId = (await ergolib).TokenId.from_str(tokId);
-                const tokenAmount = (await ergolib).TokenAmount.from_i64((await ergolib).I64.from_str(tokens[tokId].toString()));
-                changeBoxBuilder.add_token(tokenId, tokenAmount);
-            }
+        for (const tokId of Object.keys(tokens)) {
+            const tokenId = (await ergolib).TokenId.from_str(tokId);
+            const tokenAmount = (await ergolib).TokenAmount.from_i64((await ergolib).I64.from_str(tokens[tokId].toString()));
+            changeBoxBuilder.add_token(tokenId, tokenAmount);
+        }
         try {
             outputCandidates.add(changeBoxBuilder.build());
         } catch (e) {
@@ -58,7 +56,6 @@ export async function createTransaction(boxSelection, outputCandidates, dataInpu
             throw e;
         }
     }
-
     const txBuilder = (await ergolib).TxBuilder.new(
         boxSelection,
         outputCandidates,
@@ -83,9 +80,8 @@ export async function createTransaction(boxSelection, outputCandidates, dataInpu
         }
         txBuilder.set_token_burn_permit(burnTokensWASM);
     }
-
-    const tx = parseUnsignedTx(txBuilder.build().to_json());
-    console.log("createTransaction tx", tx);
+    const txtmp = txBuilder.build().to_json();
+    const tx = parseUnsignedTx(txtmp);
 
     const unsignedTx = (await ergolib).UnsignedTransaction.from_json(JSONBigInt.stringify(tx))
     var correctTx = parseUnsignedTx(unsignedTx.to_json());
@@ -100,7 +96,8 @@ export async function createTransaction(boxSelection, outputCandidates, dataInpu
     });
     // Put back complete selected datainputs in the same order
     correctTx.dataInputs = correctTx.dataInputs.map(box => {
-        const fullBoxInfo = parseUtxo(dataInputs.find(utxo => utxo.boxId === box.boxId));
+        const fullBoxInfoTmp = dataInputs.find(utxo => utxo.boxId === box.boxId);
+        const fullBoxInfo = parseUtxo(fullBoxInfoTmp);
         return {
             ...fullBoxInfo,
             extension: {}
@@ -232,9 +229,8 @@ export function getUtxosListValue(utxos) {
 export function getTokenListFromUtxos(utxos) {
     var tokenList = {};
     for (const i in utxos) {
-        console.log("utxos[i]",utxos[i])
         for (const asset of utxos[i].assets) {
-            if (Object.keys(tokenList).includes(asset.tokenId) ) {
+            if (Object.keys(tokenList).includes(asset.tokenId)) {
                 tokenList[asset.tokenId] = BigInt(tokenList[asset.tokenId]) + BigInt(asset.amount);
             } else {
                 //console.log("tokenList",tokenList, asset)
@@ -338,7 +334,7 @@ function isDict(v) {
 }
 
 export async function getErgoStateContext() {
-    const res =  await getExplorerBlockHeaders();
+    const res = await getExplorerBlockHeaders();
     const block_headers = (await ergolib).BlockHeaders.from_json(res);
     const pre_header = (await ergolib).PreHeader.from_block_header(block_headers.get(0));
     return new (await ergolib).ErgoStateContext(pre_header, block_headers);
@@ -357,11 +353,16 @@ export async function signTransaction(unsignedTx, inputs, dataInputs, wallet) {
     //console.log("signTransaction1", unsignedTx, inputs, dataInputs);
     const unsignedTransaction = (await ergolib).UnsignedTransaction.from_json(JSONBigInt.stringify(unsignedTx));
     const inputBoxes = (await ergolib).ErgoBoxes.from_boxes_json(inputs);
-    const dataInputsBoxes = (await ergolib).ErgoBoxes.from_boxes_json(dataInputs);
-    const ctx = await getErgoStateContext();
-    //console.log("signTransaction2", unsignedTx, inputs, dataInputs);
-    const signedTx = wallet.sign_transaction(ctx, unsignedTransaction, inputBoxes, dataInputsBoxes);
-    return signedTx.to_json();
+    console.log("signTransaction dataInputs", dataInputs);
+    try {
+        const dataInputsBoxes = (await ergolib).ErgoBoxes.from_boxes_json(dataInputs);
+        const ctx = await getErgoStateContext();
+        const signedTx = wallet.sign_transaction(ctx, unsignedTransaction, inputBoxes, dataInputsBoxes);
+        return signedTx.to_json();
+    } catch(e) {
+        console.log(e)
+    }
+    
 }
 
 // https://github.com/ergoplatform/eips/pull/37 ergopay:<txBase64safe>

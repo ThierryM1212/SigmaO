@@ -4,7 +4,7 @@ const myArgs = process.argv.slice(2);
 const symbolFile = myArgs[0];
 
 const scripts = [
-    'Option.es',
+    'Option_AMM.es',
     'Buy_Option_Request.es',
     'Exercise_Option_Request.es',
 ]

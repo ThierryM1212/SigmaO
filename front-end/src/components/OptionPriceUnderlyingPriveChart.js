@@ -2,34 +2,15 @@ import React from 'react';
 
 /* global BigInt */
 
-import {
-    Chart as ChartJS,
-    CategoryScale,
-    LinearScale,
-    PointElement,
-    LineElement,
-    Title,
-    Tooltip,
-    Legend,
-    TimeScale,
-} from 'chart.js';
+import { Chart, registerables } from 'chart.js';
 import 'chartjs-adapter-date-fns';
 import { Line } from 'react-chartjs-2';
-import { formatERGAmount, getOptionPrice } from '../utils/utils';
+import { formatERGAmount, getOptionPrice, getOptionPriceBS } from '../utils/utils';
 import { OPTION_STYLES, OPTION_TYPES } from '../utils/constants';
 
-ChartJS.register(
-    CategoryScale,
-    LinearScale,
-    TimeScale,
-    PointElement,
-    LineElement,
-    Title,
-    Tooltip,
-    Legend
-);
+Chart.register(...registerables);
 
-ChartJS.defaults.color = "rgba(255, 255, 255, 0.9)";
+Chart.defaults.color = "rgba(255, 255, 255, 0.9)";
 
 export const options = {
     responsive: true,
@@ -73,10 +54,10 @@ export const options = {
     },
 };
 
-function getRange(start, stop) {
+function getIntegerRange(start, stop, numPoints) {
     var resArray = [];
 
-    var step = BigInt((BigInt(stop) - BigInt(start)) / BigInt(50));
+    var step = BigInt((BigInt(stop) - BigInt(start)) / BigInt(numPoints));
     
     if (step <= BigInt(0)) {
         step = BigInt(1);
@@ -86,13 +67,13 @@ function getRange(start, stop) {
         resArray.push(current);
         current = current + step;
     }
-    console.log("getRange", step, resArray.length)
+    console.log("getIntegerRange", step, resArray.length)
     return resArray.map(i => parseInt(i));
 }
 
 export function OptionPriceUnderlyingPriveChart(props) {
     var date = props.pricingDate;
-    const labels = getRange(parseInt(props.oraclePrice / 3), props.oraclePrice * 3);
+    const labels = getIntegerRange(parseInt(props.oraclePrice / 4), props.oraclePrice * 4, 50);
     const optionTypeNum = OPTION_TYPES.find(o => o.label === props.optionType).id;
     const optionStyleNum = OPTION_STYLES.find(o => o.label === props.optionStyle).id;
     //console.log("labels", labels)
@@ -100,11 +81,19 @@ export function OptionPriceUnderlyingPriveChart(props) {
         labels,
         datasets: [
             {
-                label: 'Option price at ' + date.toDateString(),
+                label: 'Option price BS at ' + date.toDateString(),
+                data: labels.map(underlyingPrice => parseInt(getOptionPriceBS(optionTypeNum, date, props.maturityDate, underlyingPrice, props.strikePrice,
+                    props.shareSize, props.sigma))),
+                borderColor: 'rgb(0, 99, 132)',
+                backgroundColor: 'rgba(0, 99, 132, 0.5)',
+                yAxisID: 'y',
+            },
+            {
+                label: 'Option price New at ' + date.toDateString(),
                 data: labels.map(underlyingPrice => parseInt(getOptionPrice(optionTypeNum, optionStyleNum, date, props.maturityDate, underlyingPrice, props.strikePrice,
                     props.shareSize, props.sigma, props.K1, props.K2))),
-                borderColor: 'rgb(255, 99, 132)',
-                backgroundColor: 'rgba(255, 99, 132, 0.5)',
+                borderColor: 'rgb(0, 99, 0)',
+                backgroundColor: 'rgba(0, 99, 0, 0.5)',
                 yAxisID: 'y',
             },
         ],

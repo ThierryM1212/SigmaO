@@ -27,14 +27,14 @@ export default class MintOption extends React.Component {
             underlyingToken: underlyingTokens[0].label,
             optionAmount: 10,
             shareSize: 1,
-            strikePrice: 1,
+            strikePrice: 1000000,
             maturityDate: initMaturityDate,
             pricingDate: new Date(),
             sigma: 500,
-            K1: 500,
-            K2: 300,
-            oraclePrice: 1,
-            oraclePriceGraph: 1,
+            K1: 700,
+            K2: 100,
+            oraclePrice: 1000000,
+            oraclePriceGraph: 1000000,
         };
         this.setOptionType = this.setOptionType.bind(this);
         this.setOptionStyle = this.setOptionStyle.bind(this);
@@ -47,12 +47,19 @@ export default class MintOption extends React.Component {
         this.setSigma = this.setSigma.bind(this);
         this.setK1 = this.setK1.bind(this);
         this.setK2 = this.setK2.bind(this);
-        this.updatePricesFromOracle = this.updatePricesFromOracle.bind(this);
     }
 
     setOptionType = (type) => { this.setState({ optionType: type, }); };
     setOptionStyle = (style) => { this.setState({ optionStyle: style, }); };
-    setUnderlyingToken = (tokName) => { this.setState({ underlyingToken: tokName, }); this.updatePricesFromOracle(tokName); };
+    async setUnderlyingToken(tokName)  {
+        console.log("setUnderlyingToken", tokName, UNDERLYING_TOKENS);
+        const underlyingToken = UNDERLYING_TOKENS.find(tok => tok.label === tokName);
+        console.log("setUnderlyingToken underlyingToken", underlyingToken);
+        const oraclePrice = await getOraclePrice(underlyingToken.oracleNFTID);
+        console.log("setUnderlyingToken oraclePrice", oraclePrice);
+        this.setState({ underlyingToken: tokName, strikePrice: oraclePrice, oraclePrice: oraclePrice, oraclePriceGraph: oraclePrice });
+
+    };
     setOptionAmount = (amount) => { this.setState({ optionAmount: amount.replace(/[^0-9]/g, "") }); };
     setShareSize = (shareSize) => { this.setState({ shareSize: shareSize.replace(/[^0-9]/g, "") }); };
     setStrikePrice = (strikePrice) => { this.setState({ strikePrice: strikePrice.replace(/[^0-9]/g, "") }); };
@@ -63,17 +70,6 @@ export default class MintOption extends React.Component {
     setK1 = (s) => { this.setState({ K1: s.replace(/[^0-9]/g, "") }); };
     setK2 = (s) => { this.setState({ K2: s.replace(/[^0-9]/g, "") }); };
 
-    async getOraclePrice(tokName) {
-        const underlyingToken = UNDERLYING_TOKENS.find(tok => tok.label === tokName);
-        console.log();
-        return await getOraclePrice(underlyingToken.oracleNFTID);
-    }
-
-    async updatePricesFromOracle(tokName) {
-        const underlyingToken = UNDERLYING_TOKENS.find(tok => tok.label === tokName);
-        const oraclePrice = await getOraclePrice(underlyingToken.oracleNFTID)
-        this.setState({ strikePrice: oraclePrice, oraclePrice: oraclePrice, oraclePriceGraph: oraclePrice });
-    }
 
     async mintOption() {
         try {
@@ -94,7 +90,7 @@ export default class MintOption extends React.Component {
     }
 
     async componentDidMount() {
-        await this.updatePricesFromOracle(this.state.underlyingToken);
+        await this.setUnderlyingToken(this.state.underlyingToken);
     }
 
     render() {
@@ -263,6 +259,10 @@ export default class MintOption extends React.Component {
                                     sigma={this.state.sigma}
                                     K1={this.state.K1}
                                     K2={this.state.K2}
+                                    showBSBench={true}
+                                    showBSError={true}
+                                    showBinomialBench={true}
+                                    showTreeError={true}
                                 />
                             </div>
                         </div>

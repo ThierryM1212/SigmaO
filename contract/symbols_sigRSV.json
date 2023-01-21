@@ -3,22 +3,22 @@
         {
             "name": "underlyingAssetTokenId",
             "type": "CollByte",
-            "value": "03faf2cb329f2e90d6d23b58d91bbb6c046aa143261cc21f52fbe2824bfcbf04"
+            "value": "003bd19d0187117f130b62e1bcab0939929ff5c7709f843c5c4dd158949285d0"
         },
         {
             "name": "underlyingAssetDecimalFactor",
             "type": "Long",
-            "value": "100"
+            "value": "1"
         },
         {
             "name": "OracleTokenId",
             "type": "CollByte",
-            "value": "011d3364de07e5a26f0c4eef0852cddb387039a921b7154ef3cab22c6eda887f"
+            "value": "1d5afc59838920bb5ef2a8f9d63825a55b1d48e269d7cecee335d637c3ff5f3f"
         },
         {
             "name": "OptionCallScriptHash",
             "type": "CollByte",
-            "value": "8ed6c33dcd185da888f45e34fb86f1e756ef88b61e87b1af315463c26795efe7"
+            "value": "280c720c0734907d472e0a49bf6b3f1a016ca94941325130282d36e92d937a11"
         },
         {
             "name": "HourInMilli",

@@ -117,9 +117,9 @@
     val validBuyOption: Boolean = if (!isFrozen && INPUTS.size == 2 && CONTEXT.dataInputs.size > 0) {
         // Oracle Info
         val oracleBox: Box = CONTEXT.dataInputs(0)
-        val oraclePrice: Long = oracleBox.R4[Long].get // nanoerg per token
-        val oracleHeight: Long = oracleBox.R5[Int].get
-        val validOracle: Boolean = oracleBox.tokens(0)._1 == OracleTokenId && HEIGHT <= oracleHeight + 30
+        val oraclePrice: Long = oracleBox.value / (oracleBox.tokens(2)._2 / underlyingAssetDecimalFactor)
+        val validOracle: Boolean = oracleBox.tokens(0)._1 == OracleTokenId              &&
+                                   oracleBox.tokens(2)._1 == underlyingAssetTokenId
 
         // SQRT values
         val SQRTy: Coll[Long] = Coll(0L, 100L, 500L, 1000L, 2000L, 4000L, 9000L, 13000L, 20000L, 30000L, 40000L,

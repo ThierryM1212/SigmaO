@@ -1,34 +1,15 @@
 import React from 'react';
 
-import {
-    Chart as ChartJS,
-    CategoryScale,
-    LinearScale,
-    PointElement,
-    LineElement,
-    Title,
-    Tooltip,
-    Legend,
-    TimeScale,
-} from 'chart.js';
+import { Chart, registerables } from 'chart.js';
 import 'chartjs-adapter-date-fns';
 import { enGB } from 'date-fns/locale';
 import { Line } from 'react-chartjs-2';
-import { formatERGAmount, getOptionPrice } from '../utils/utils';
+import { formatERGAmount, getOptionPrice, getOptionPriceBS, getOptionPriceTree } from '../utils/utils';
 import { OPTION_STYLES, OPTION_TYPES } from '../utils/constants';
 
-ChartJS.register(
-    CategoryScale,
-    LinearScale,
-    TimeScale,
-    PointElement,
-    LineElement,
-    Title,
-    Tooltip,
-    Legend
-);
+Chart.register(...registerables);
 
-ChartJS.defaults.color = 'rgba(255,255,255,0.9)'
+Chart.defaults.color = 'rgba(255,255,255,0.9)'
 
 export const options = {
     responsive: true,
@@ -37,8 +18,11 @@ export const options = {
         mode: 'index',
         intersect: false,
     },
-    stacked: false,
-    
+    plugins: {
+        filler: {
+            propagate: true
+        }
+    },
     scales: {
         x: {
             type: "time",
@@ -64,7 +48,7 @@ export const options = {
             position: 'left',
             ticks: {
                 // Include a dollar sign in the ticks
-                callback: function(value, index, ticks) {
+                callback: function (value, index, ticks) {
                     return formatERGAmount(value);
                 }
             }
@@ -72,33 +56,96 @@ export const options = {
     },
 };
 
-function getDates(startDate, stopDate) {
+function getDateRange(startDate, stopDate, numPoints) {
     var dateArray = [];
     var currentDate = startDate.valueOf();
-    const step = Math.round((stopDate - startDate) / 150);
+    const step = Math.round((stopDate - startDate) / numPoints);
     while (currentDate <= stopDate.valueOf()) {
-        dateArray.push(new Date (currentDate));
+        dateArray.push(new Date(currentDate));
         currentDate = currentDate + step;
     }
     return dateArray;
 }
 
 export function OptionPriceTimeChart(props) {
-    const labels= getDates(new Date(), props.maturityDate);
+    const labels = getDateRange(new Date(), props.maturityDate, 20);
     const optionTypeNum = OPTION_TYPES.find(o => o.label === props.optionType).id;
     const optionStyleNum = OPTION_STYLES.find(o => o.label === props.optionStyle).id;
+    var dataSets = [];
+    const optionPrices = labels.map(pricingDate => parseInt(getOptionPrice(optionTypeNum, optionStyleNum, pricingDate, props.maturityDate, props.oraclePrice, props.strikePrice,
+        props.shareSize, props.sigma, props.K1, props.K2)));
+    dataSets.push(
+        {
+            label: 'Option price over time',
+            data: optionPrices,
+            borderColor: 'rgb(0, 99, 0)',
+            backgroundColor: 'rgba(0, 99, 0, 0.5)',
+            yAxisID: 'y',
+        }
+    );
+    if (props.showBSBench) {
+        const optionPricesBS = labels.map(pricingDate => parseInt(getOptionPriceBS(optionTypeNum, pricingDate, props.maturityDate, props.oraclePrice, props.strikePrice,
+            props.shareSize, props.sigma)));
+        dataSets.push(
+            {
+                label: 'Option price over time \nBlack-Sholes',
+                data: optionPricesBS,
+                borderColor: 'rgb(0, 99, 132, 0.3)',
+                backgroundColor: 'rgba(0, 99, 132, 0.3)',
+                borderDash: [5, 5],
+                yAxisID: 'y',
+            }
+        )
+        if (props.showBSError) {
+            const errorBS = optionPrices.map((v, i) => Math.abs(v - optionPricesBS[i]));
+            dataSets.push(
+                {
+                    label: 'Price error against \nBlack-Sholes',
+                    data: errorBS,
+                    borderColor: 'rgba(255, 99, 132, 0.5)',
+                    backgroundColor: 'rgba(255, 99, 132, 0.5)',
+                    yAxisID: 'y',
+                    type: 'bar',
+                }
+            )
+        }
+    }
+    //if (props.showTrinomialBench || props.showBinomialBench) {
+    //    var valuationType = "trinomial";
+    //    if (props.showBinomialBench) {
+    //        valuationType = "binomial";
+    //    }
+    //    const optionPricesTree = labels.map(pricingDate => parseInt(getOptionPriceTree(valuationType, optionTypeNum, optionStyleNum, pricingDate, props.maturityDate, props.oraclePrice, props.strikePrice,
+    //        props.shareSize, props.sigma)))
+    //    dataSets.push(
+    //        {
+    //            label: 'Option price over time ' + valuationType,
+    //            data: optionPricesTree,
+    //            borderColor: 'rgb(0, 99, 0, 0.3)',
+    //            backgroundColor: 'rgba(0, 99, 0, 0.3)',
+    //            borderDash: [5, 5],
+    //            yAxisID: 'y',
+    //        }
+    //    )
+    //    if (props.showTreeError) {
+    //        const errorBS = optionPrices.map((v, i) => Math.abs(v - optionPricesTree[i]));
+    //        dataSets.push(
+    //            {
+    //                label: 'Price error against ' + valuationType,
+    //                data: errorBS,
+    //                borderColor: 'rgba(255, 0, 132, 0.5)',
+    //                backgroundColor: 'rgba(255, 0, 132, 0.5)',
+    //                yAxisID: 'y',
+    //                type: 'bar',
+    //            }
+    //        )
+    //    }
+    //}
+
+
     const data = {
         labels,
-        datasets: [
-            {
-                label: 'Option price over time',
-                data: labels.map(pricingDate => parseInt(getOptionPrice(optionTypeNum, optionStyleNum, pricingDate, props.maturityDate, props.oraclePrice, props.strikePrice,
-                    props.shareSize, props.sigma, props.K1, props.K2))),
-                borderColor: 'rgb(255, 99, 132)',
-                backgroundColor: 'rgba(255, 99, 132, 0.5)',
-                yAxisID: 'y',
-            },
-        ],
+        datasets: dataSets,
     };
 
     return <Line options={options} data={data} />;
