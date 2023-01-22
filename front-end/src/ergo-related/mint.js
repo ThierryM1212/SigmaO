@@ -1,12 +1,13 @@
 import { waitingAlert, displayTransaction } from "../utils/Alerts";
 import { encodeHexConst, encodeLong, encodeLongArray, encodeStrConst, ergoTreeToAddress, sigmaPropToAddress } from "./serializer";
-import { BUY_OPTION_REQUEST_SCRIPT_ADDRESS, DAPP_UI_ERGOTREE, DAPP_UI_FEE, DAPP_UI_MINT_FEE, MIN_NANOERG_BOX_VALUE, OPTION_TYPES, SIGRSV_ORACLE_TOKEN_ID, TX_FEE, UNDERLYING_TOKENS } from "../utils/constants";
+import { DAPP_UI_ERGOTREE, DAPP_UI_FEE, DAPP_UI_MINT_FEE, MIN_NANOERG_BOX_VALUE, OPTION_TYPES, TX_FEE } from "../utils/constants";
 import { getTokenUtxos, getUtxos, walletSignTx } from "./wallet";
 import { boxById, boxByIdv1, boxByIdv2, boxByTokenId, boxByTokenId2, currentHeight, searchUnspentBoxesUpdated, sendTx } from "./explorer";
 import { createTransaction, parseUtxo, signTransaction } from "./wasm";
 import { maxBigInt } from "../utils/utils";
 import JSONBigInt from 'json-bigint';
 import { OptionDef } from "../utils/OptionDef";
+import { BUY_OPTION_REQUEST_SCRIPT_ADDRESS, UNDERLYING_TOKENS } from "../utils/script_constants";
 let ergolib = import('ergo-lib-wasm-browser');
 
 /* global BigInt */
@@ -20,7 +21,7 @@ export async function createOptionRequest(optionType, optionStyle, underlyingTok
     var txAmount = 3 * TX_FEE + MIN_NANOERG_BOX_VALUE + DAPP_UI_MINT_FEE;
 
     if (optionType === 1) { // Put reserve
-        txAmount = txAmount + optionAmount * optionAmount * strikePrice;
+        txAmount = txAmount + optionAmount * strikePrice * shareSize;
     }
     const optionBoxValue = txAmount - TX_FEE;
 

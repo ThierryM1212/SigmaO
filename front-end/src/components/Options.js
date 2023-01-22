@@ -1,5 +1,5 @@
 import React, { Fragment } from 'react';
-import { DAPP_UI_MINT_FEE, MIN_NANOERG_BOX_VALUE, OPTION_STYLES, OPTION_TYPES, TX_FEE, UNDERLYING_TOKENS } from '../utils/constants';
+import { DAPP_UI_MINT_FEE, MIN_NANOERG_BOX_VALUE, OPTION_STYLES, OPTION_TYPES, TX_FEE } from '../utils/constants';
 import Table from 'react-bootstrap/Table';
 import JSONBigInt from 'json-bigint';
 import { boxByIdv1, getUnspentBoxesForAddressUpdated } from '../ergo-related/explorer';
@@ -9,6 +9,7 @@ import { promptOptionAmount } from '../utils/Alerts';
 import { formatERGAmount, formatLongString } from '../utils/utils';
 import { OptionPriceTimeChart } from './OptionPriceTimeChart';
 import { ca } from 'date-fns/locale';
+import { UNDERLYING_TOKENS } from '../utils/script_constants';
 let ergolib = import('ergo-lib-wasm-browser');
 
 /* global BigInt */

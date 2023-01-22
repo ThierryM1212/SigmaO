@@ -1,10 +1,10 @@
 import React, { Fragment } from 'react';
-import { UNDERLYING_TOKENS } from '../utils/constants';
 import Table from 'react-bootstrap/Table';
 import { getUnspentBoxesForAddressUpdated } from '../ergo-related/explorer';
 import { processExerciseRequest, refundBuyRequest } from '../ergo-related/mint';
 import { formatERGAmount, formatLongString } from '../utils/utils';
 import { ExerciseOptionRequest } from '../utils/ExerciseOptionRequest';
+import { UNDERLYING_TOKENS } from '../utils/script_constants';
 
 
 export default class ExerciseOptionRequests extends React.Component {

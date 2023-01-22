@@ -93,7 +93,7 @@
                 (   // Put
                     !isCall                                                                     &&
                     OUTPUTS(0).tokens.size == 1                                                 &&
-                    output0Token0._2 == (valueIn - MinOptionReserveValue) / strikePrice + 1L // minted option 1 stay in the box
+                    output0Token0._2 == (valueIn - MinOptionReserveValue) / (strikePrice * shareSize) + 1L // minted option 1 stay in the box
                 )
             )
         

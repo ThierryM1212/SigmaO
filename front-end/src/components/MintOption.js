@@ -1,5 +1,5 @@
 import React, { Fragment } from 'react';
-import { DAPP_UI_MINT_FEE, MIN_NANOERG_BOX_VALUE, OPTION_STYLES, OPTION_TYPES, TX_FEE, UNDERLYING_TOKENS } from '../utils/constants';
+import { DAPP_UI_MINT_FEE, MIN_NANOERG_BOX_VALUE, OPTION_STYLES, OPTION_TYPES, TX_FEE } from '../utils/constants';
 import ThemedSelect from './ThemedSelect';
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
@@ -9,6 +9,7 @@ import { getOraclePrice } from '../ergo-related/explorer';
 import { OptionPriceTimeChart } from './OptionPriceTimeChart';
 import { formatERGAmount } from '../utils/utils';
 import { OptionPriceUnderlyingPriveChart } from './OptionPriceUnderlyingPriveChart';
+import { UNDERLYING_TOKENS } from '../utils/script_constants';
 
 
 const optionsTypes = OPTION_TYPES.map(opt_type => { return { value: opt_type.label, label: opt_type.label } });

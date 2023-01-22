@@ -1,10 +1,10 @@
 import React, { Fragment } from 'react';
-import { BUY_OPTION_REQUEST_SCRIPT_ADDRESS } from '../utils/constants';
 import Table from 'react-bootstrap/Table';
 import { getUnspentBoxesForAddressUpdated } from '../ergo-related/explorer';
 import { BuyOptionRequest } from '../utils/BuyOptionRequest';
 import { formatLongString } from '../utils/utils';
 import { processBuyRequest, refundBuyRequest } from '../ergo-related/mint';
+import { BUY_OPTION_REQUEST_SCRIPT_ADDRESS } from '../utils/script_constants';
 
 /* global BigInt */
 
@@ -29,6 +29,7 @@ export default class BuyOptionRequests extends React.Component {
     }
 
     async processBuy(box) {
+        console.log("processBuy")
         await processBuyRequest(box);
     }
 

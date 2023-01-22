@@ -1,8 +1,8 @@
 import { getExplorerBlockHeaders, getOraclePrice } from '../ergo-related/explorer';
 import { decodeHex, decodeLongArray, decodeString, ergoTreeToAddress, sigmaPropToAddress, toHexString } from '../ergo-related/serializer';
 import { getRegisterValue } from '../ergo-related/wasm';
-import { UNDERLYING_TOKENS } from './constants';
-import { getOptionPrice, maxBigInt } from './utils';
+import { UNDERLYING_TOKENS } from './script_constants';
+import { getOptionPrice } from './utils';
 
 /* global BigInt */
 

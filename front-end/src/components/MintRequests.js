@@ -1,11 +1,12 @@
 import React, { Fragment } from 'react';
-import { OPTION_TYPES, OPTION_STYLES, UNDERLYING_TOKENS, TX_FEE, MIN_NANOERG_BOX_VALUE } from '../utils/constants';
+import { OPTION_TYPES, OPTION_STYLES, TX_FEE, MIN_NANOERG_BOX_VALUE } from '../utils/constants';
 import Table from 'react-bootstrap/Table';
 import JSONBigInt from 'json-bigint';
 
 import { getUnspentBoxesForAddressUpdated } from '../ergo-related/explorer';
 import { mintOption, refundOptionRequest } from '../ergo-related/mint';
 import { formatERGAmount } from '../utils/utils';
+import { UNDERLYING_TOKENS } from '../utils/script_constants';
 
 
 export default class MintRequests extends React.Component {
