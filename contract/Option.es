@@ -24,7 +24,7 @@
     val isCall: Boolean = optionCreationBox.R8[Coll[Long]].get(0) == 0L // 0 Call, 1 Put
     val isEuropean: Boolean = optionCreationBox.R8[Coll[Long]].get(1) == 0L // 0 european, 1 american
     val shareSize: Long = optionCreationBox.R8[Coll[Long]].get(2) // Number of underlying token granted per option, 1 for 1 SigUSD per option
-    val shareSizeAdjusted: Long = shareSize * underlyingAssetDecimalFactor // Number of tokens per option, with decimals
+    val shareSizeAdjusted: Long = shareSize * UnderlyingAssetDecimalFactor // Number of tokens per option, with decimals
     val maturityDate: Long = optionCreationBox.R8[Coll[Long]].get(3) // Unix time
     val sigmaVol: Long = optionCreationBox.R8[Coll[Long]].get(4) // volatility, per 1000
     val K1: Long = optionCreationBox.R8[Coll[Long]].get(5) // K spread, per 1000
@@ -64,7 +64,7 @@
         (
             (   // Call
                 isCall                                        && 
-                output0Token1._1 == underlyingAssetTokenId    &&
+                output0Token1._1 == UnderlyingAssetTokenId    &&
                 output0Token1._2 >= 1L // 1 to stay in the box
             ) || 
             (   // Put
@@ -158,7 +158,7 @@
         val maxTimeValue: BigInt = (4 * sigmaVol * shareSize.toBigInt * strikePrice * sqrtDuration ) / (10 * 1000 * 177584 ) // 177584 = SQRT(3600*1000*24*365)
         val sqrtPriceSpread: BigInt = sqrt(max(oraclePrice - strikePrice, strikePrice - oraclePrice))
         val sqrtStrikePrice: BigInt = sqrt(strikePrice)
-        val europeanTimeValue: BigInt = max(0, maxTimeValue - (maxTimeValue * K1 * sqrtPriceSpread * 177584) / (1000 * sqrtStrikePrice * sqrtDuration))
+        val europeanTimeValue: BigInt = max(0, maxTimeValue - (maxTimeValue * K1 * sqrtPriceSpread * 177584) / (1000 * sqrtStrikePrice * max(1.toBigInt, sqrtDuration)))
         val optionPriceTmp: Long = if (isEuropean) { //european
             intrinsicPrice + europeanTimeValue 
         } else { //american
@@ -223,7 +223,7 @@
         (
             (
                 isCall                                                                &&
-                output1Token0._1 == underlyingAssetTokenId                            &&
+                output1Token0._1 == UnderlyingAssetTokenId                            &&
                 output1Token0._2 == exercisedAmountReserve                            &&
                 OUTPUTS(1).tokens.size == 1                                           &&
                 OUTPUTS(2).value >= numberOptionExpected * strikePrice * shareSize    && // strike price in nanoerg no need to adjust
@@ -234,7 +234,7 @@
                 !isCall                                                               &&
                 OUTPUTS(1).value >= exercisedAmountReserve                            &&
                 OUTPUTS(1).tokens.size == 0                                           &&
-                output2Token0._1 == underlyingAssetTokenId                            &&
+                output2Token0._1 == UnderlyingAssetTokenId                            &&
                 output2Token0._2 >= numberOptionExpected * shareSizeAdjusted          &&
                 OUTPUTS(2).tokens.size == 1
             )

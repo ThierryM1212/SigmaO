@@ -97,11 +97,17 @@ export function getOptionPrice(optionType, optionStyle, currentDateUNIX, maturit
         const sqrtDuration = sqrtBigInt(remainingDuration);
         //console.log("getOptionPrice1", beforePoint, afterPoint, sqrtDuration, Math.sqrt(parseInt(remainingDuration)))
         const maxTimeValue = (BigInt(4) * BigInt(sigma) * BigInt(shareSize) * BigInt(strikePrice) * sqrtDuration) / (BigInt(10) * BigInt(1000) * BigInt(177584))
-        const priceSpread = maxBigInt(BigInt(currentOraclePrice) - BigInt(strikePrice), BigInt(strikePrice) - BigInt(currentOraclePrice))
+        const priceSpread = maxBigInt(
+            BigInt(currentOraclePrice) - BigInt(strikePrice), 
+            BigInt(strikePrice) - BigInt(currentOraclePrice)
+            )
         const sqrtPriceSpread = sqrtBigInt(priceSpread);
         const sqrtStrikePrice = sqrtBigInt(BigInt(strikePrice));
         //console.log("getOptionPrice2", maxTimeValue, priceSpread)
-        const europeanTimeValue = maxBigInt(BigInt(0), maxTimeValue - (maxTimeValue * BigInt(K1) * sqrtPriceSpread * BigInt(177584)) / (BigInt(1000) * sqrtStrikePrice * sqrtDuration))
+        const europeanTimeValue = maxBigInt(
+            BigInt(0),
+            maxTimeValue - (maxTimeValue * BigInt(K1) * sqrtPriceSpread * BigInt(177584)) / (BigInt(1000) * sqrtStrikePrice * maxBigInt(BigInt(1), sqrtDuration))
+            )
 
         const americanTimeValue = europeanTimeValue + (europeanTimeValue * BigInt(K2) * sqrtDuration) / (BigInt(1000) * BigInt(177584))
         //console.log("getOptionPrice3", europeanTimeValue, americanTimeValue, americanTimeValue - europeanTimeValue, parseFloat(sqrtDuration) / 177584)
