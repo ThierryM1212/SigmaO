@@ -49,6 +49,7 @@ export class OptionDef {
         this.issuerAddress = await sigmaPropToAddress(getRegisterValue(this.full, "R9"));
         this.address = await ergoTreeToAddress(this.full.ergoTree);
         this.underlyingTokenId = UNDERLYING_TOKENS.find(tok => tok.optionScriptAddress === this.address).tokenId
+        this.underlyingTokenName = UNDERLYING_TOKENS.find(tok => tok.optionScriptAddress === this.address).label
         this.currentOraclePrice = await getOraclePrice(UNDERLYING_TOKENS.find(tok => tok.tokenId === this.underlyingTokenId).oracleNFTID);
         const ergoContext = await getExplorerBlockHeaders();
         this.currentOptionPrice = this.getOptionPrice(ergoContext[0].timestamp, this.currentOraclePrice);

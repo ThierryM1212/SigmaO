@@ -72,6 +72,7 @@ export default class Options extends React.Component {
                             <tr>
                                 <th>Type</th>
                                 <th>Style</th>
+                                <th>Asset</th>
                                 <th>Options</th>
                                 <th>Reserve</th>
                                 <th>Issuer address</th>
@@ -97,7 +98,7 @@ export default class Options extends React.Component {
                                     return <tr key={creationBox.full.boxId}>
                                         <td>{OPTION_TYPES.find(opt => opt.id === creationBox.optionType).label}</td>
                                         <td>{OPTION_STYLES.find(opt => opt.id === creationBox.optionStyle).label}</td>
-
+                                        <td>{creationBox.underlyingTokenName}</td>
                                         {
                                             creationBox.optionType === 0 ?
                                                 <Fragment>

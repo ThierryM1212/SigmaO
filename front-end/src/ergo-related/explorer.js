@@ -210,7 +210,7 @@ export async function getOraclePrice(oracleNFTID) {
             if (oracleBoxes[0].assets.length === 1) { // Oracle
                 return oracleBoxes[0].additionalRegisters.R4.renderedValue
             } else { // AMM LP box
-                // oracleBox.value / (oracleBox.tokens(2)._2 / underlyingAssetDecimalFactor)
+                // oracleBox.value / (oracleBox.tokens(2)._2 / UnderlyingAssetDecimalFactor)
                 console.log("oracleBox", oracleBoxes[0]);
                 const nanoergValue = parseInt(oracleBoxes[0].value)
                 const tokenAmount = parseInt(oracleBoxes[0].assets[2].amount)

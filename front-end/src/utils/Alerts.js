@@ -73,7 +73,7 @@ export function promptOptionAmount(title) {
     return new Promise(function (resolve, reject) {
         Swal.fire({
             title: title,
-            html: `<div><div>Amount of options to buy</div><input type="text" id="optionAmount" class="swal2-input" placeholder="Option amount" autocomplete="off"></div>`,
+            html: `<div><input type="text" id="optionAmount" class="swal2-input" placeholder="Option amount" autocomplete="off"></div>`,
             focusConfirm: false,
             showCancelButton: true,
             preConfirm: () => {
