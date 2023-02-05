@@ -1,6 +1,6 @@
 import JSONBigInt from 'json-bigint';
-import { boxByIdv1, currentHeight, getExplorerBlockHeaders, getExplorerBlockHeadersFull } from './explorer';
-import { NANOERG_TO_ERG, TX_FEE } from '../utils/constants';
+import { currentHeight, getExplorerBlockHeaders, getExplorerBlockHeadersFull } from './explorer';
+import { NANOERG_TO_ERG } from '../utils/constants';
 import { TextEncoder } from 'text-decoding';
 import { byteArrayToBase64, encodeContract } from './serializer';
 let ergolib = import('ergo-lib-wasm-browser');
@@ -28,13 +28,13 @@ async function boxCandidatesToJsonMin(boxCandidates) {
     return res;
 }
 
-export async function createTransaction(boxSelection, outputCandidates, dataInputs, changeAddress, utxos, burnTokens = false) {
+export async function createTransaction(boxSelection, outputCandidates, dataInputs, changeAddress, utxos, txFee, burnTokens = false) {
     console.log("createTransaction utxos", utxos);
     const creationHeight = await currentHeight();
 
     // build the change box
     var outputJs = await boxCandidatesToJsonMin(outputCandidates);
-    const missingErgs = getMissingErg(utxos, outputJs) - BigInt(TX_FEE);
+    const missingErgs = getMissingErg(utxos, outputJs) - BigInt(txFee);
     const tokens = getMissingTokens(utxos, outputJs);
     console.log("missing tokens, missingErgs", tokens, missingErgs);
 
@@ -60,7 +60,7 @@ export async function createTransaction(boxSelection, outputCandidates, dataInpu
         boxSelection,
         outputCandidates,
         creationHeight,
-        (await ergolib).BoxValue.from_i64((await ergolib).I64.from_str(TX_FEE.toString())),
+        (await ergolib).BoxValue.from_i64((await ergolib).I64.from_str(txFee.toString())),
         (await ergolib).Address.from_base58(changeAddress));
     var dataInputsWASM = new (await ergolib).DataInputs();
     for (const box of dataInputs) {
@@ -312,7 +312,7 @@ export function getTokenAmount(box, tokenId) {
 }
 
 export function getRegisterValue(box, register) {
-    if (register in box.additionalRegisters) {
+    if (box.additionalRegisters) {
         if (isDict(box.additionalRegisters[register])) {
             //console.log("getRegisterValue", box.additionalRegisters[register].serializedValue);
             return box.additionalRegisters[register].serializedValue;
@@ -322,11 +322,6 @@ export function getRegisterValue(box, register) {
     } else {
         return "";
     }
-}
-
-export function getRegisterValue2(box, register) {
-
-    return box.additionalRegisters[register];
 }
 
 function isDict(v) {

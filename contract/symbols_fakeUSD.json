@@ -1,12 +1,12 @@
 {
     "symbols": [
         {
-            "name": "underlyingAssetTokenId",
+            "name": "UnderlyingAssetTokenId",
             "type": "CollByte",
             "value": "777777e5051f8a6bc30827ee41dd39e04bca1dba35236b9a26b494e0bac84f33"
         },
         {
-            "name": "underlyingAssetDecimalFactor",
+            "name": "UnderlyingAssetDecimalFactor",
             "type": "Long",
             "value": "100"
         },
@@ -18,27 +18,12 @@
         {
             "name": "OptionCallScriptHash",
             "type": "CollByte",
-            "value": "b7b2da8328d66fbaac5be1b8e1ddf2f994fbc22bcd41d5af7ebf68e45487b986"
-        },
-        {
-            "name": "HourInMilli",
-            "type": "Long",
-            "value": "3600000"
+            "value": "edc5ce312faa01dadd5a46f7cac4c3a6d4711fefb5761cbac6e4b0ee56a1205d"
         },
         {
             "name": "BoxMinValue",
             "type": "Long",
             "value": "1000000"
-        },
-        {
-            "name": "TxFee",
-            "type": "Long",
-            "value": "1100000"
-        },
-        {
-            "name": "NanoergToERG",
-            "type": "Long",
-            "value": "1000000000"
         }
     ]
 }

@@ -9,17 +9,18 @@
     val selfToken1: (Coll[Byte], Long) = SELF.tokens.getOrElse(1,(Coll[Byte](),0L))
     val output1Token0: (Coll[Byte], Long) = OUTPUTS(1).tokens.getOrElse(0,(Coll[Byte](),0L))
     
-    // Ensure we get the right amount of Token or ERG in OUTPUTS(1) from the option reserve
+    // Ensure we get the right amount of Token or ERG in OUTPUTS(1)
     val validExerciseOption = if (OUTPUTS.size == 4 && selfToken0._2 > 0L) {
         val optionCreationBox: Box = SELF.R5[Box].get
         val optionTokenID: Coll[Byte] = optionCreationBox.id
+        val underlyingAssetTokenId: Coll[Byte] = optionCreationBox.R5[Coll[Byte]].get
         val validCreationBox: Boolean = selfToken0._1 == optionTokenID                                          &&
-                                        blake2b256(optionCreationBox.propositionBytes) == OptionCallScriptHash  &&
-                                        blake2b256(INPUTS(0).propositionBytes) == OptionCallScriptHash
+                                        blake2b256(optionCreationBox.propositionBytes) == OptionCallScriptHash
 
         val optionType: Long = optionCreationBox.R8[Coll[Long]].get(0)
         val shareSize: Long = optionCreationBox.R8[Coll[Long]].get(2)
-        val strikePrice: Long = optionCreationBox.R8[Coll[Long]].get(7)
+        val strikePrice: Long = optionCreationBox.R8[Coll[Long]].get(4)
+        val TxFee: Long = optionCreationBox.R8[Coll[Long]].get(6)
         val numProvidedOption: Long = if (selfToken0._1 == optionTokenID) {
             selfToken0._2
         } else {
@@ -28,13 +29,12 @@
 
         val validExerciseCommon: Boolean = 
             validCreationBox                                                                          &&
-            blake2b256(OUTPUTS(0).propositionBytes) == OptionCallScriptHash                           &&
             OUTPUTS(1).propositionBytes == userPKIn.propBytes
 
         val validExcerciseCall: Boolean = if (output1Token0._2 > 0L && optionType == 0L) { 
-            OUTPUTS(1).value >= SELF.value - TxFee - numProvidedOption * shareSize * strikePrice      &&
-            output1Token0._1 == underlyingAssetTokenId                                                &&
-            output1Token0._2 == numProvidedOption * shareSize * underlyingAssetDecimalFactor
+            OUTPUTS(1).value >= SELF.value - TxFee - BoxMinValue - numProvidedOption * shareSize * strikePrice      &&
+            output1Token0._1 == underlyingAssetTokenId                                                              &&
+            output1Token0._2 == numProvidedOption * shareSize
         } else {
             false
         }
@@ -51,6 +51,6 @@
         false
     }
 
-    userPKIn ||  // refund
+    (userPKIn && blake2b256(OUTPUTS(0).propositionBytes) != OptionCallScriptHash) ||  // refund, avoid random exercise from issuer
     sigmaProp(validExerciseOption)
 }   

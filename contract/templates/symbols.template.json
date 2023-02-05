@@ -1,12 +1,12 @@
 {
     "symbols": [
         {
-            "name": "underlyingAssetTokenId",
+            "name": "UnderlyingAssetTokenId",
             "type": "CollByte",
             "value": "{{tokenId}}"
         },
         {
-            "name": "underlyingAssetDecimalFactor",
+            "name": "UnderlyingAssetDecimalFactor",
             "type": "Long",
             "value": "{{decimalFactor}}"
         },

@@ -1,3 +1,4 @@
+import ls from 'localstorage-slim';
 
 export async function post(url, body = {}, apiKey = '') {
     return await fetch(url, {
@@ -14,9 +15,19 @@ export async function post(url, body = {}, apiKey = '') {
         body: JSON.stringify(body),
     });
 }
-export async function get(url, apiKey = '') {
+
+export async function get(url, apiKey = '', ttl = 0) {
+    var res_cache = {};
     try {
-        return await fetch(url, {
+        if (ttl > 0) {
+            ls.flush();
+            res_cache = ls.get('web_cache_' + ttl.toString()) ?? {};
+            if (Object.keys(res_cache).includes(url)) {
+                //console.log("res_cache", res_cache[url])
+                return res_cache[url];
+            }
+        }
+        const result = await fetch(url, {
             headers: {
                 Accept: 'application/json',
                 'Content-Type': 'application/json',
@@ -26,7 +37,15 @@ export async function get(url, apiKey = '') {
                 'Access-Control-Allow-Methods': 'GET,HEAD,OPTIONS,POST,PUT',
                 api_key: apiKey,
             }
-        }).then(res => res.json());
+        });
+        console.log("get", result)
+        const resJson = await result.json();
+        if (ttl > 0 && result.status === 200) {
+            res_cache = ls.get('web_cache_' + ttl.toString()) ?? {};
+            res_cache[url] = resJson;
+            ls.set('web_cache_' + ttl.toString(), res_cache, { ttl: ttl })
+        }
+        return resJson;
     } catch (e) {
         console.error(e);
         return [];

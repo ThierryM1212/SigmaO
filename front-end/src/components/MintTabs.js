@@ -2,10 +2,11 @@ import React from 'react';
 import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
 import './react-tabs.css';
 import MintOption from './MintOption';
-import MintRequests from './MintRequests';
 import Options from './Options';
 import BuyOptionRequests from './BuyOptionRequests';
 import ExerciseOptionRequests from './ExerciseOptionRequests';
+import MintSellOption from './MintSellOption';
+import SellOptionRequests from './SellOptionRequests';
 
 
 export default class MintTabs extends React.Component {
@@ -30,18 +31,22 @@ export default class MintTabs extends React.Component {
                         </Tab>
                         <Tab key={3}>
                             <div className='d-flex flex-row align-items-center justify-content-between'>
-                                Mint Requests &nbsp;
+                                Buy option requests &nbsp;
                             </div>
                         </Tab>
-
                         <Tab key={4}>
                             <div className='d-flex flex-row align-items-center justify-content-between'>
-                                Buy option requests &nbsp;
+                                Exercise option requests &nbsp;
                             </div>
                         </Tab>
                         <Tab key={5}>
                             <div className='d-flex flex-row align-items-center justify-content-between'>
-                                Exercise option requests &nbsp;
+                                Create option sale &nbsp;
+                            </div>
+                        </Tab>
+                        <Tab key={6}>
+                            <div className='d-flex flex-row align-items-center justify-content-between'>
+                                Options on sale &nbsp;
                             </div>
                         </Tab>
                     </TabList>
@@ -53,13 +58,16 @@ export default class MintTabs extends React.Component {
                         <MintOption />
                     </TabPanel>
                     <TabPanel key={3}>
-                        <MintRequests />
-                    </TabPanel>
-                    <TabPanel key={4}>
                         <BuyOptionRequests />
                     </TabPanel>
-                    <TabPanel key={5}>
+                    <TabPanel key={4}>
                         <ExerciseOptionRequests />
+                    </TabPanel>
+                    <TabPanel key={5}>
+                        <MintSellOption />
+                    </TabPanel>
+                    <TabPanel key={6}>
+                        <SellOptionRequests />
                     </TabPanel>
 
                 </Tabs>

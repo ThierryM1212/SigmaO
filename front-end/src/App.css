@@ -82,6 +82,10 @@
   border-radius: 10px;
 }
 
+.select-container {
+  width: 10rem;
+}
+
 .btn {
   color: var(--my-text-color);
 }

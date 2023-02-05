@@ -4,6 +4,8 @@ import { DEFAULT_EXPLORER_API_ADDRESS } from '../utils/constants';
 import { addressToErgoTree, ergoTreeToTemplateHash } from './serializer';
 import { parseUtxos } from './wasm';
 
+const SHORT_CACHE = 15;
+const LONG_CACHE = 86400;
 
 export const explorerApi = DEFAULT_EXPLORER_API_ADDRESS + 'api/v0';
 export const explorerApiV1 = DEFAULT_EXPLORER_API_ADDRESS + 'api/v1';
@@ -14,8 +16,8 @@ async function getRequest(url) {
     });
 }
 
-async function getRequestV1(url) {
-    return get(explorerApiV1 + url).then(res => {
+async function getRequestV1(url, ttl = 0) {
+    return get(explorerApiV1 + url, '', ttl).then(res => {
         return { data: res };
     });
 }
@@ -96,14 +98,14 @@ export async function boxById(id) {
     return res.data;
 }
 
-export async function boxByIdv1(id) {
+export async function boxByIdv1(id, LONG_CACHE) {
     const res = await getRequestV1(`/boxes/${id}`);
     return res.data;
 }
 
 export async function boxByIdv2(id) {
     const res = await getRequestV1Text(`/boxes/${id}`);
-    return JSONBigInt.parse(res) ;
+    return JSONBigInt.parse(res);
 }
 
 /////
@@ -206,7 +208,7 @@ export async function getOraclePrice(oracleNFTID) {
     const oracleBoxes = await boxByTokenId(oracleNFTID);
     console.log("oracleBoxes", oracleBoxes);
     if (oracleBoxes && oracleBoxes.length == 1) {
-        try { 
+        try {
             if (oracleBoxes[0].assets.length === 1) { // Oracle
                 return oracleBoxes[0].additionalRegisters.R4.renderedValue
             } else { // AMM LP box
@@ -214,14 +216,14 @@ export async function getOraclePrice(oracleNFTID) {
                 console.log("oracleBox", oracleBoxes[0]);
                 const nanoergValue = parseInt(oracleBoxes[0].value)
                 const tokenAmount = parseInt(oracleBoxes[0].assets[2].amount)
-                const tokenDecimals= parseInt(oracleBoxes[0].assets[2].decimals)
+                const tokenDecimals = parseInt(oracleBoxes[0].assets[2].decimals)
 
-                const oraclePrice = Math.round( nanoergValue / ( tokenAmount / Math.pow(10, tokenDecimals))).toString();
+                const oraclePrice = Math.round(nanoergValue / (tokenAmount / Math.pow(10, tokenDecimals))).toString();
                 console.log("oraclePrice AMM", oraclePrice);
                 return oraclePrice;
             }
 
-            
+
         } catch (e) {
             console.log(e);
             return "1";
@@ -231,6 +233,18 @@ export async function getOraclePrice(oracleNFTID) {
         return "1";
     }
 }
+
+export async function getTokenInfo(tokenId) {
+    const res = await getRequestV1(`/tokens/${tokenId}`, LONG_CACHE);
+    console.log("getTokenInfo", res)
+    return res.data;
+}
+
+export async function getTokensForAddress(address) {
+    const addressBalance = await getBalanceForAddress(address);
+    return addressBalance.confirmed.tokens;
+}
+
 
 async function post(url, body = {}, apiKey = '') {
     //console.log("post0", JSONBigInt.stringify(body));

@@ -1,9 +1,9 @@
 import React, { Fragment } from 'react';
 import Table from 'react-bootstrap/Table';
 import { getUnspentBoxesForAddressUpdated } from '../ergo-related/explorer';
-import { BuyOptionRequest } from '../utils/BuyOptionRequest';
+import { BuyOptionRequest } from '../objects/BuyOptionRequest';
 import { formatLongString } from '../utils/utils';
-import { processBuyRequest, refundBuyRequest } from '../ergo-related/mint';
+import { processBuyRequest, refundBuyRequest } from '../actions/BuyRequestActions';
 import { BUY_OPTION_REQUEST_SCRIPT_ADDRESS } from '../utils/script_constants';
 
 /* global BigInt */
@@ -28,9 +28,9 @@ export default class BuyOptionRequests extends React.Component {
         this.fetchOptionRequests();
     }
 
-    async processBuy(box) {
+    async processBuy(buyRequest) {
         console.log("processBuy")
-        await processBuyRequest(box);
+        await processBuyRequest(buyRequest);
     }
 
     async refundRequest(box) {
@@ -60,9 +60,9 @@ export default class BuyOptionRequests extends React.Component {
                                         <td>{formatLongString(buyRequest.buyerAddress, 6)}</td>
                                         <th>{formatLongString(buyRequest.optionTokenID, 6)}</th>
                                         <th>{buyRequest.optionAmount}</th>
-                                        <th>{buyRequest.maxTotalPrice}</th>
+                                        <th>{buyRequest.buyRequestValue}</th>
                                         <td>
-                                            <button className='btn btn-yellow' onClick={() => this.processBuy(buyRequest.full)}>Process</button>
+                                            <button className='btn btn-yellow' onClick={() => this.processBuy(buyRequest)}>Process</button>
                                             <button className='btn btn-blue' onClick={() => this.refundRequest(buyRequest.full)}>Refund</button>
                                         </td>
                                     </tr>

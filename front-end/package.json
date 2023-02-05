@@ -21,6 +21,7 @@
     "crypto-js": "^4.1.1",
     "date-fns": "^2.29.3",
     "ergo-lib-wasm-browser": "^0.21.1",
+    "localstorage-slim": "^2.3.0",
     "option-pricing-tree": "^1.0.1",
     "react": "^17.0.1",
     "react-bootstrap": "^2.7.0",

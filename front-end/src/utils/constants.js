@@ -11,6 +11,9 @@ export const SQRTbase = [
 export const DEFAULT_EXPLORER_API_ADDRESS = "https://api.ergoplatform.com/";
 export const DEFAULT_EXPLORER_ADDRESS = "https://explorer.ergoplatform.com/";
 
+export const DEFAULT_OPTION_DURATION = 1; // month
+export const MAX_UI_OPTION_DURATION = 90; // days
+
 export const OPTION_TYPES = [
     {
         label: 'Call',
@@ -33,3 +36,4 @@ export const OPTION_STYLES = [
     }
 ]
 
+export const TX_FEES = [1100000, 2000000];

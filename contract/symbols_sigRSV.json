@@ -1,12 +1,12 @@
 {
     "symbols": [
         {
-            "name": "underlyingAssetTokenId",
+            "name": "UnderlyingAssetTokenId",
             "type": "CollByte",
             "value": "003bd19d0187117f130b62e1bcab0939929ff5c7709f843c5c4dd158949285d0"
         },
         {
-            "name": "underlyingAssetDecimalFactor",
+            "name": "UnderlyingAssetDecimalFactor",
             "type": "Long",
             "value": "1"
         },

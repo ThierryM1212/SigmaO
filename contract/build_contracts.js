@@ -22,13 +22,13 @@ class CompiledContract {
 }
 
 class UnderlyingToken {
-    constructor(label, tokenId, decimals, oracleNFTID, optionScriptAddress, exerciseOptionScriptAddress) {
+    constructor(label, tokenId, decimals, oracleNFTID, oracleType, sellOptionScriptAddress) {
         this.label = label;
         this.tokenId = tokenId;
         this.decimals = decimals;
         this.oracleNFTID = oracleNFTID;
-        this.optionScriptAddress = optionScriptAddress;
-        this.exerciseOptionScriptAddress = exerciseOptionScriptAddress;
+        this.oracleType = oracleType;
+        this.sellOptionScriptAddress = sellOptionScriptAddress;
     }
 }
 const buildBaseDir = './build/';
@@ -89,7 +89,7 @@ for (var token of TOK.TOKENS) {
     const exerciseCompileOutput = execSync(command1).toString();
     const exerciseCompiledContract = new CompiledContract(exerciseCompileOutput);
 
-    jsTokenList.push(new UnderlyingToken(token.name, token.tokenId, token.decimals, token.oracleTokenId,
+    jsTokenList.push(new UnderlyingToken(token.name, token.tokenId, token.decimals, token.oracleTokenId, token.oracleType,
         optionCompiledContract.scriptAddress, exerciseCompiledContract.scriptAddress))
 
 }

@@ -1,10 +1,11 @@
 import React, { Fragment } from 'react';
 import Table from 'react-bootstrap/Table';
 import { getUnspentBoxesForAddressUpdated } from '../ergo-related/explorer';
-import { processExerciseRequest, refundBuyRequest } from '../ergo-related/mint';
 import { formatERGAmount, formatLongString } from '../utils/utils';
-import { ExerciseOptionRequest } from '../utils/ExerciseOptionRequest';
-import { UNDERLYING_TOKENS } from '../utils/script_constants';
+import { ExerciseOptionRequest } from '../objects/ExerciseOptionRequest';
+import { EXERCISE_OPTION_REQUEST_SCRIPT_ADDRESS, UNDERLYING_TOKENS } from '../utils/script_constants';
+import { processExerciseRequest } from '../actions/botOptionAction';
+import { refundBuyRequest } from '../actions/BuyRequestActions';
 
 
 export default class ExerciseOptionRequests extends React.Component {
@@ -17,10 +18,7 @@ export default class ExerciseOptionRequests extends React.Component {
     }
 
     async fetchOptionRequests() {
-        const allExerciseOptionRequests = (await Promise.all(UNDERLYING_TOKENS.map(async tok => {
-            const eOptRequests = await getUnspentBoxesForAddressUpdated(tok.exerciseOptionScriptAddress);
-            return eOptRequests;
-        }))).flat();
+        const allExerciseOptionRequests = await getUnspentBoxesForAddressUpdated(EXERCISE_OPTION_REQUEST_SCRIPT_ADDRESS);
         const exerciseOptionsRequests = await Promise.all(allExerciseOptionRequests.map(async box => { return await ExerciseOptionRequest.create(box) }));
         this.setState({ exerciseOptionRequestsList: exerciseOptionsRequests })
     }

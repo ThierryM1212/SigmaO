@@ -1,16 +1,13 @@
 import React, { Fragment } from 'react';
-import { DAPP_UI_MINT_FEE, MIN_NANOERG_BOX_VALUE, OPTION_STYLES, OPTION_TYPES, TX_FEE } from '../utils/constants';
+import { MIN_NANOERG_BOX_VALUE, OPTION_STYLES, OPTION_TYPES, TX_FEE } from '../utils/constants';
 import Table from 'react-bootstrap/Table';
-import JSONBigInt from 'json-bigint';
-import { boxByIdv1, getUnspentBoxesForAddressUpdated } from '../ergo-related/explorer';
-import { OptionDef } from '../utils/OptionDef';
-import { buyOptionRequest, closeOptionExpired, exerciseOptionRequest } from '../ergo-related/mint';
+import { getUnspentBoxesForAddressUpdated } from '../ergo-related/explorer';
 import { promptOptionAmount } from '../utils/Alerts';
 import { formatERGAmount, formatLongString } from '../utils/utils';
-import { OptionPriceTimeChart } from './OptionPriceTimeChart';
-import { ca } from 'date-fns/locale';
-import { UNDERLYING_TOKENS } from '../utils/script_constants';
-let ergolib = import('ergo-lib-wasm-browser');
+import { OPTION_SCRIPT_ADDRESS } from '../utils/script_constants';
+import { Option } from '../objects/Option';
+import { closeOptionExpired, deliverOption, mintOption } from '../actions/botOptionAction';
+import { exerciseOptionRequest, refundOptionRequest } from '../actions/userOptionActions';
 
 /* global BigInt */
 
@@ -24,30 +21,13 @@ export default class Options extends React.Component {
     }
 
     async fetchOptions() {
-        var allOptions = (await Promise.all(UNDERLYING_TOKENS.map(async token =>
-            (await getUnspentBoxesForAddressUpdated(token.optionScriptAddress))
-                .filter(box => box.assets.length >= 1 && !box.additionalRegisters.R9
-                    ))
-        )).flat().filter(box => box);
-        console.log("allOptions0", allOptions)
-        allOptions = await Promise.all(allOptions.map(async opt => {
-            var res = { ...opt }
-            const boxWASM = (await ergolib).ErgoBox.from_json(JSONBigInt.stringify(opt));
-            const creationBox = JSONBigInt.parse(boxWASM.register_value(7).to_ergo_box().to_json())
-            //const creationBox_ = await boxByIdv1(creationBox.boxId)
-            const creationBox2 = await OptionDef.create(creationBox)
-            console.log("creationBox2", creationBox2)
-            res["creationBox"] = creationBox2;
-            return res;
-
+        var allOptionJSON = await getUnspentBoxesForAddressUpdated(OPTION_SCRIPT_ADDRESS);
+        const allOptions2 = await Promise.all(allOptionJSON.map(async opt => {
+            const optionDef = await Option.create(opt);
+            return optionDef;
         }))
-        console.log("allOptions", allOptions)
-        this.setState({ optionList: allOptions })
-    }
-
-    async buyOption(optionTokenID, maxPrice) {
-        const amount = await promptOptionAmount("Option amount to buy");
-        await buyOptionRequest(optionTokenID, amount, maxPrice);
+        //console.log("allOptions", allOptionJSON, allOptions2)
+        this.setState({ optionList: allOptions2 })
     }
 
     async exerciseOption(optionTokenID) {
@@ -59,11 +39,25 @@ export default class Options extends React.Component {
         await closeOptionExpired(box, issuerAddress);
     }
 
+    async deliverOption(box) {
+        await deliverOption(box);
+    }
+
+    async mintOption(requestBox) {
+        await mintOption(requestBox);
+    }
+
+    async refundRequest(requestBox) {
+        await refundOptionRequest(requestBox);
+    }
+
     async componentDidMount() {
+        console.log("componentDidMount", this.state)
         this.fetchOptions();
     }
 
     render() {
+        console.log("render", this.state)
         return (
             <Fragment >
                 <div className="card zonemint p-2 m-2">
@@ -73,80 +67,80 @@ export default class Options extends React.Component {
                                 <th>Type</th>
                                 <th>Style</th>
                                 <th>Asset</th>
-                                <th>Options</th>
                                 <th>Reserve</th>
                                 <th>Issuer address</th>
                                 <th>Share size</th>
                                 <th>Strike price</th>
                                 <th>Maturity date</th>
-                                <th>Sigma</th>
-                                <th>K1</th>
-                                <th>K2</th>
-                                <th>UI buy Fee</th>
-                                <th>Option price</th>
+                                <th>UI mint Fee</th>
+                                <th>Tx Fee</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody>
                             {
-                                this.state.optionList.map(box => {
-                                    const creationBox = box.creationBox;
-                                    const optionToken = UNDERLYING_TOKENS.find(tok => tok.optionScriptAddress === creationBox.address)
-                                    const dAppFee = (BigInt(creationBox.currentOptionPrice) * BigInt(creationBox.dAppUIFee)) / BigInt(1000);
-                                    const totalOptionPrice = (BigInt(creationBox.currentOptionPrice) + dAppFee).toString();
-
+                                this.state.optionList.map(opt => {
+                                    //console.log("opt", opt)
+                                    const creationBox = opt.optionDef;
+                                    if (!creationBox) {
+                                        return;
+                                    }
                                     return <tr key={creationBox.full.boxId}>
                                         <td>{OPTION_TYPES.find(opt => opt.id === creationBox.optionType).label}</td>
                                         <td>{OPTION_STYLES.find(opt => opt.id === creationBox.optionStyle).label}</td>
-                                        <td>{creationBox.underlyingTokenName}</td>
+                                        <td>{creationBox.underlyingTokenInfo.name ?? ''}</td>
                                         {
                                             creationBox.optionType === 0 ?
                                                 <Fragment>
-                                                    <th>{box.assets[0].amount - 1} / {(creationBox.full.assets[0].amount - 1) / (creationBox.shareSize * Math.pow(10, optionToken.decimals))}</th>
-                                                    <th>{(box.assets[1].amount - 1) / Math.pow(10, optionToken.decimals)}{" " + optionToken.label}</th>
+                                                    <th>
+                                                        {(opt.full.assets[1]?.amount ?? 0) / Math.pow(10, creationBox.underlyingTokenInfo.decimals ?? 0)}
+                                                        {" " + creationBox.underlyingTokenInfo.name}
+                                                    </th>
                                                 </Fragment>
                                                 :
                                                 <Fragment>
-                                                    <th>{box.assets[0].amount - 1} / {(creationBox.full.value - 2 * TX_FEE - MIN_NANOERG_BOX_VALUE - DAPP_UI_MINT_FEE) / (creationBox.shareSize * creationBox.strikePrice)}</th>
-                                                    <th>{formatERGAmount(box.value - TX_FEE - MIN_NANOERG_BOX_VALUE)} ERG</th>
+                                                    <th>{formatERGAmount(opt.full.value - creationBox.txFee - MIN_NANOERG_BOX_VALUE)} ERG</th>
                                                 </Fragment>
                                         }
                                         <td>{formatLongString(creationBox.issuerAddress, 6)}</td>
                                         <td>{creationBox.shareSize}</td>
                                         <td>{creationBox.strikePrice}</td>
                                         <td>{new Date(creationBox.maturityDate).toISOString().slice(0, 16).replace('T', ' ')}</td>
-                                        <td>{creationBox.sigma / 10} %</td>
-                                        <td>{creationBox.K1 / 10} %</td>
-                                        <td>{creationBox.K2 / 10} %</td>
-                                        <td>{creationBox.dAppUIFee / 10} %</td>
-                                        <td>
 
-                                            <strong>{formatERGAmount(totalOptionPrice)} ERG</strong>
-                                            <div><OptionPriceTimeChart
-                                                optionType={OPTION_TYPES.find(opt => opt.id === creationBox.optionType).label}
-                                                optionStyle={OPTION_STYLES.find(opt => opt.id === creationBox.optionStyle).label}
-                                                maturityDate={creationBox.maturityDate}
-                                                oraclePrice={creationBox.currentOraclePrice}
-                                                strikePrice={creationBox.strikePrice}
-                                                shareSize={creationBox.shareSize}
-                                                sigma={creationBox.sigma}
-                                                K1={creationBox.K1}
-                                                K2={creationBox.K2}
-                                            /></div>
-
-                                        </td>
+                                        <td>{formatERGAmount(creationBox.dAppUIMintFee)} ERG</td>
+                                        <td>{formatERGAmount(creationBox.txFee)} ERG</td>
                                         <td>
-                                            <button className='btn btn-blue' onClick={() => this.buyOption(creationBox.full.boxId, totalOptionPrice)}>Buy</button>
-                                            <button className='btn btn-blue' onClick={() => this.exerciseOption(creationBox.full.boxId)}>Exercise</button>
-                                            <button className='btn btn-yellow' onClick={() => this.closeOption(box, creationBox.issuerAddress)}>Close</button>
+                                            <button className='btn btn-blue' 
+                                            onClick={() => this.exerciseOption(creationBox.full.boxId)}
+                                            disabled={!opt.isExercible}>
+                                                Exercise
+                                                </button>
+                                            <button className='btn btn-yellow'
+                                                onClick={() => this.closeOption(opt.full, creationBox.issuerAddress)}
+                                                disabled={!opt.isEmpty || (!opt.isExercible && opt.isExpired)}>
+                                                Close
+                                            </button>
+                                            <button className='btn btn-yellow'
+                                                onClick={() => this.deliverOption(opt.full)}
+                                                disabled={opt.isDelivered || !opt.isMinted}  >
+                                                Deliver
+                                            </button>
+                                            <button className='btn btn-yellow'
+                                                onClick={() => this.mintOption(opt.full)}
+                                                disabled={opt.isMinted}  >
+                                                Mint
+                                            </button>
+                                            <button className='btn btn-yellow'
+                                                onClick={() => this.refundRequest(opt.full)}
+                                                disabled={opt.isMinted}  >
+                                                Refund
+                                            </button>
                                         </td>
                                     </tr>
                                 })
                             }
-
                         </tbody>
                     </Table>
-
                 </div >
             </Fragment >
         )

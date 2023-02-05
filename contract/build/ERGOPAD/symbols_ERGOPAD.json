@@ -1,0 +1,39 @@
+{
+    "symbols": [
+        {
+            "name": "underlyingAssetTokenId",
+            "type": "CollByte",
+            "value": "d71693c49a84fbbecd4908c94813b46514b18b67a99952dc1e6e4791556de413"
+        },
+        {
+            "name": "underlyingAssetDecimalFactor",
+            "type": "Long",
+            "value": "100"
+        },
+        {
+            "name": "OracleTokenId",
+            "type": "CollByte",
+            "value": "d7868533f26db1b1728c1f85c2326a3c0327b57ddab14e41a2b77a5d4c20f4b2"
+        },
+        {
+            "name": "OptionCallScriptHash",
+            "type": "CollByte",
+            "value": "6dcb62bb0b8f05e918061b3473d17f146f67bf1c35941b966ae6a09d62bd3a64"
+        },
+        {
+            "name": "HourInMilli",
+            "type": "Long",
+            "value": "3600000"
+        },
+        {
+            "name": "BoxMinValue",
+            "type": "Long",
+            "value": "1000000"
+        },
+        {
+            "name": "TxFee",
+            "type": "Long",
+            "value": "1100000"
+        }
+    ]
+}

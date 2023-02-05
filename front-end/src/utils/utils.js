@@ -93,6 +93,7 @@ export function getOptionPrice(optionType, optionStyle, currentDateUNIX, maturit
         if (optionType === 1) { // put
             intrinsicPrice = maxBigInt(BigInt(0), (BigInt(strikePrice) - BigInt(currentOraclePrice)) * BigInt(shareSize));
         }
+        //console.log("intrinsicPrice", intrinsicPrice, strikePrice, currentOraclePrice)
 
         const sqrtDuration = sqrtBigInt(remainingDuration);
         //console.log("getOptionPrice1", beforePoint, afterPoint, sqrtDuration, Math.sqrt(parseInt(remainingDuration)))
