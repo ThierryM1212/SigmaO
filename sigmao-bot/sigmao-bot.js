@@ -68,7 +68,7 @@ async function processBuyRequests() {
             const txId = await processBuyRequest(buyTokensRequest);
             console.log("processBuyRequests PROCESSED ", buyTokensRequest.tokenId, txId);
         }
-        if(buyTokensRequests.length === 0) {
+        if (buyTokensRequests.length === 0) {
             console.log("processBuyRequests NOTHING TO DO");
         }
     } catch (e) {
@@ -84,7 +84,7 @@ async function processExerciseOption() {
             const txId = await processExerciseRequest(exerciseOptionsRequest);
             console.log("processExerciseOption PROCESSED ", exerciseOptionsRequest.optionTokenId, txId);
         }
-        if(exerciseOptionsRequests.length === 0) {
+        if (exerciseOptionsRequests.length === 0) {
             console.log("processExerciseOption NOTHING TO DO");
         }
     } catch (e) {
@@ -94,16 +94,16 @@ async function processExerciseOption() {
 
 async function processCloseSellOption() {
     try {
-        const sellOptionAddresses = UNDERLYING_TOKENS.map(t=>t.sellOptionScriptAddress);
+        const sellOptionAddresses = UNDERLYING_TOKENS.map(t => t.sellOptionScriptAddress);
 
         const sellOptionBoxes = (await Promise.all(sellOptionAddresses.map(async (a) => await getUnspentBoxesForAddressUpdated(a)))).flat();
-        const sellOptionRequests = (await Promise.all(sellOptionBoxes.map(async (b) => await SellOptionRequest.create(b)))).filter(s=> s.optionAmount === 0 
+        const sellOptionRequests = (await Promise.all(sellOptionBoxes.map(async (b) => await SellOptionRequest.create(b)))).filter(s => s.optionAmount === 0
             || s.isFrozen);
         for (const sellOptionRequest of sellOptionRequests) {
             const txId = await closeSellOption(sellOptionRequest);
             console.log("closeSellOption PROCESSED ", sellOptionRequest.option.optionDef.optionName, txId);
         }
-        if(sellOptionRequests.length === 0) {
+        if (sellOptionRequests.length === 0) {
             console.log("closeSellOption NOTHING TO DO");
         }
     } catch (e) {
@@ -123,7 +123,7 @@ async function processCloseEmptySellToken() {
             const txId = await closeEmptySellToken(sellTokenRequest);
             console.log("closeEmptySellToken PROCESSED ", txId);
         }
-        if(emptySellTokenRequests.length === 0) {
+        if (emptySellTokenRequests.length === 0) {
             console.log("closeEmptySellToken NOTHING TO DO");
         }
     } catch (e) {

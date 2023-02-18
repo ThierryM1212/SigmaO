@@ -334,105 +334,108 @@ export async function processBuyRequest(buyRequest) {
 
         if (tokenIssuerBox.address === OPTION_SCRIPT_ADDRESS) {
             const optionDef = await OptionDef.create(tokenIssuerBox);
-            const sellOptionScriptAddress = UNDERLYING_TOKENS.find(tok => tok.tokenId === optionDef.underlyingTokenId).sellOptionScriptAddress;
-            const optionReserveBoxes = await searchUnspentBoxesUpdated(sellOptionScriptAddress, [tokenId]);
-            const sellOptionList = await Promise.all(optionReserveBoxes.map(b => SellOptionRequest.create(b)));
-            const buyMaxPrice = (buyRequest.buyRequestValue - optionDef.txFee - MIN_NANOERG_BOX_VALUE) / (tokenBuyAmount + DAPP_UI_FEE * tokenBuyAmount / 1000)
-            //console.log("maxprice",sellOptionList[0].currentOptionPrice <= buyMaxPrice)
-            //console.log("maxprice",sellOptionList[0].currentOptionPrice , buyMaxPrice)
-            //console.log("amount",sellOptionList[0].optionAmount >= tokenBuyAmount)
-            const validSellOptionList = sellOptionList.filter(so => so.optionAmount >= tokenBuyAmount &&
-                so.currentOptionPrice <= buyMaxPrice * underlyingTokenDecimalFactor)
-            if (validSellOptionList.length > 0) {
-                const utxos = [validSellOptionList[0].full, buyRequest.full];
-                const optionValue = maxBigInt(BigInt(MIN_NANOERG_BOX_VALUE),
-                    BigInt(tokenBuyAmount) * BigInt(validSellOptionList[0].currentOptionPrice) / BigInt(underlyingTokenDecimalFactor)
-                );
-                const dAppFee = maxBigInt(BigInt(MIN_NANOERG_BOX_VALUE), (optionValue * BigInt(validSellOptionList[0].dAppUIFee)) / BigInt(1000));
-                const optionDeliveryBoxValue = initialBuyRequestValue - BigInt(optionDef.txFee) - optionValue - dAppFee;
-                console.log("optionDeliveryBoxValue", optionDeliveryBoxValue, initialBuyRequestValue, optionValue, dAppFee)
-                const reserveBoxWASM = (await ergolib).ErgoBox.from_json(JSONBigInt.stringify(validSellOptionList[0].full));
-
-                const inputsWASM = (await ergolib).ErgoBoxes.from_boxes_json(utxos);
-                const dataListWASM = new (await ergolib).ErgoBoxAssetsDataList();
-                const boxSelection = new (await ergolib).BoxSelection(inputsWASM, dataListWASM);
-                const creationHeight = await currentHeight();
-                const outputCandidates = (await ergolib).ErgoBoxCandidates.empty();
-
-                // rebuild the option reserve
-                const optionReserveBoxBuilder = new (await ergolib).ErgoBoxCandidateBuilder(
-                    reserveBoxWASM.value(), // unchanged
-                    (await ergolib).Contract.pay_to_address((await ergolib).Address.from_base58(sellOptionScriptAddress)),
-                    creationHeight);
-                const initialReserveOptionAmount = reserveBoxWASM.tokens().get(0).amount().as_i64().to_str();
-                const outputReserveOptionAmount = BigInt(initialReserveOptionAmount) - BigInt(tokenBuyAmount);
-                if (outputReserveOptionAmount > 0) {
-                    optionReserveBoxBuilder.add_token( // option token sold
-                        reserveBoxWASM.tokens().get(0).id(),
-                        (await ergolib).TokenAmount.from_i64((await ergolib).I64.from_str(outputReserveOptionAmount.toString())),
+            const sellOptionScriptAddress = UNDERLYING_TOKENS.find(tok => tok.tokenId === optionDef.underlyingTokenId)?.sellOptionScriptAddress;
+            if (sellOptionScriptAddress) {
+                const optionReserveBoxes = await searchUnspentBoxesUpdated(sellOptionScriptAddress, [tokenId]);
+                const sellOptionList = await Promise.all(optionReserveBoxes.map(b => SellOptionRequest.create(b)));
+                const buyMaxPrice = (buyRequest.buyRequestValue - optionDef.txFee - MIN_NANOERG_BOX_VALUE) / (tokenBuyAmount + DAPP_UI_FEE * tokenBuyAmount / 1000)
+                //console.log("maxprice",sellOptionList[0].currentOptionPrice <= buyMaxPrice)
+                //console.log("maxprice",sellOptionList[0].currentOptionPrice , buyMaxPrice)
+                //console.log("amount",sellOptionList[0].optionAmount >= tokenBuyAmount)
+                const validSellOptionList = sellOptionList.filter(so => so.optionAmount >= tokenBuyAmount &&
+                    so.currentOptionPrice <= buyMaxPrice * underlyingTokenDecimalFactor)
+                if (validSellOptionList.length > 0) {
+                    const utxos = [validSellOptionList[0].full, buyRequest.full];
+                    const optionValue = maxBigInt(BigInt(MIN_NANOERG_BOX_VALUE),
+                        BigInt(tokenBuyAmount) * BigInt(validSellOptionList[0].currentOptionPrice) / BigInt(underlyingTokenDecimalFactor)
                     );
-                }
-                optionReserveBoxBuilder.set_register_value(4, reserveBoxWASM.register_value(4));
-                optionReserveBoxBuilder.set_register_value(5, reserveBoxWASM.register_value(5));
-                optionReserveBoxBuilder.set_register_value(6, reserveBoxWASM.register_value(6));
-                optionReserveBoxBuilder.set_register_value(7, reserveBoxWASM.register_value(7));
-                try {
-                    outputCandidates.add(optionReserveBoxBuilder.build());
-                } catch (e) {
-                    console.log(`building error: ${e}`);
-                    throw e;
+                    const dAppFee = maxBigInt(BigInt(MIN_NANOERG_BOX_VALUE), (optionValue * BigInt(validSellOptionList[0].dAppUIFee)) / BigInt(1000));
+                    const optionDeliveryBoxValue = initialBuyRequestValue - BigInt(optionDef.txFee) - optionValue - dAppFee;
+                    console.log("optionDeliveryBoxValue", optionDeliveryBoxValue, initialBuyRequestValue, optionValue, dAppFee)
+                    const reserveBoxWASM = (await ergolib).ErgoBox.from_json(JSONBigInt.stringify(validSellOptionList[0].full));
+
+                    const inputsWASM = (await ergolib).ErgoBoxes.from_boxes_json(utxos);
+                    const dataListWASM = new (await ergolib).ErgoBoxAssetsDataList();
+                    const boxSelection = new (await ergolib).BoxSelection(inputsWASM, dataListWASM);
+                    const creationHeight = await currentHeight();
+                    const outputCandidates = (await ergolib).ErgoBoxCandidates.empty();
+
+                    // rebuild the option reserve
+                    const optionReserveBoxBuilder = new (await ergolib).ErgoBoxCandidateBuilder(
+                        reserveBoxWASM.value(), // unchanged
+                        (await ergolib).Contract.pay_to_address((await ergolib).Address.from_base58(sellOptionScriptAddress)),
+                        creationHeight);
+                    const initialReserveOptionAmount = reserveBoxWASM.tokens().get(0).amount().as_i64().to_str();
+                    const outputReserveOptionAmount = BigInt(initialReserveOptionAmount) - BigInt(tokenBuyAmount);
+                    if (outputReserveOptionAmount > 0) {
+                        optionReserveBoxBuilder.add_token( // option token sold
+                            reserveBoxWASM.tokens().get(0).id(),
+                            (await ergolib).TokenAmount.from_i64((await ergolib).I64.from_str(outputReserveOptionAmount.toString())),
+                        );
+                    }
+                    optionReserveBoxBuilder.set_register_value(4, reserveBoxWASM.register_value(4));
+                    optionReserveBoxBuilder.set_register_value(5, reserveBoxWASM.register_value(5));
+                    optionReserveBoxBuilder.set_register_value(6, reserveBoxWASM.register_value(6));
+                    optionReserveBoxBuilder.set_register_value(7, reserveBoxWASM.register_value(7));
+                    try {
+                        outputCandidates.add(optionReserveBoxBuilder.build());
+                    } catch (e) {
+                        console.log(`building error: ${e}`);
+                        throw e;
+                    }
+
+                    // option delivery box
+                    const optionDeliveryBoxBuilder = new (await ergolib).ErgoBoxCandidateBuilder(
+                        (await ergolib).BoxValue.from_i64((await ergolib).I64.from_str(optionDeliveryBoxValue.toString())),
+                        (await ergolib).Contract.pay_to_address((await ergolib).Address.from_base58(tokenBuyerAddress)),
+                        creationHeight);
+                    optionDeliveryBoxBuilder.add_token( // option
+                        reserveBoxWASM.tokens().get(0).id(),
+                        (await ergolib).TokenAmount.from_i64((await ergolib).I64.from_str(tokenBuyAmount.toString())),
+                    );
+                    try {
+                        outputCandidates.add(optionDeliveryBoxBuilder.build());
+                    } catch (e) {
+                        console.log(`building error: ${e}`);
+                        throw e;
+                    }
+
+                    // Issuer pay box
+                    const issuerPayBoxBuilder = new (await ergolib).ErgoBoxCandidateBuilder(
+                        (await ergolib).BoxValue.from_i64((await ergolib).I64.from_str(optionValue.toString())),
+                        (await ergolib).Contract.pay_to_address((await ergolib).Address.from_base58(optionDef.issuerAddress)),
+                        creationHeight);
+                    try {
+                        outputCandidates.add(issuerPayBoxBuilder.build());
+                    } catch (e) {
+                        console.log(`building error: ${e}`);
+                        throw e;
+                    }
+
+                    // dApp UI Fee
+                    const dAppUIFeeBoxBuilder = new (await ergolib).ErgoBoxCandidateBuilder(
+                        (await ergolib).BoxValue.from_i64((await ergolib).I64.from_str(dAppFee.toString())),
+                        (await ergolib).Contract.pay_to_address((await ergolib).Address.from_base58(optionDef.dAppUIAddress)),
+                        creationHeight);
+                    try {
+                        outputCandidates.add(dAppUIFeeBoxBuilder.build());
+                    } catch (e) {
+                        console.log(`building error: ${e}`);
+                        throw e;
+                    }
+
+                    // Oracle box
+                    const oracleBoxes = await boxByTokenId2(UNDERLYING_TOKENS.find(tok => tok.tokenId === optionDef.underlyingTokenId).oracleNFTID)
+
+                    const tx = await createTransaction(boxSelection, outputCandidates, [oracleBoxes[0]], optionDef.issuerAddress, utxos, optionDef.txFee);
+                    console.log("processBuyRequest tx", JSON.stringify(tx));
+                    const wallet = (await ergolib).Wallet.from_mnemonic("", "");
+                    const signedTxTmp = await signTransaction(tx, utxos, [parseUtxo(oracleBoxes[0])], wallet);
+                    const signedTx = JSONBigInt.parse(signedTxTmp);
+                    const txId = await sendTx(signedTx);
+                    return txId;
                 }
 
-                // option delivery box
-                const optionDeliveryBoxBuilder = new (await ergolib).ErgoBoxCandidateBuilder(
-                    (await ergolib).BoxValue.from_i64((await ergolib).I64.from_str(optionDeliveryBoxValue.toString())),
-                    (await ergolib).Contract.pay_to_address((await ergolib).Address.from_base58(tokenBuyerAddress)),
-                    creationHeight);
-                optionDeliveryBoxBuilder.add_token( // option
-                    reserveBoxWASM.tokens().get(0).id(),
-                    (await ergolib).TokenAmount.from_i64((await ergolib).I64.from_str(tokenBuyAmount.toString())),
-                );
-                try {
-                    outputCandidates.add(optionDeliveryBoxBuilder.build());
-                } catch (e) {
-                    console.log(`building error: ${e}`);
-                    throw e;
-                }
-
-                // Issuer pay box
-                const issuerPayBoxBuilder = new (await ergolib).ErgoBoxCandidateBuilder(
-                    (await ergolib).BoxValue.from_i64((await ergolib).I64.from_str(optionValue.toString())),
-                    (await ergolib).Contract.pay_to_address((await ergolib).Address.from_base58(optionDef.issuerAddress)),
-                    creationHeight);
-                try {
-                    outputCandidates.add(issuerPayBoxBuilder.build());
-                } catch (e) {
-                    console.log(`building error: ${e}`);
-                    throw e;
-                }
-
-                // dApp UI Fee
-                const dAppUIFeeBoxBuilder = new (await ergolib).ErgoBoxCandidateBuilder(
-                    (await ergolib).BoxValue.from_i64((await ergolib).I64.from_str(dAppFee.toString())),
-                    (await ergolib).Contract.pay_to_address((await ergolib).Address.from_base58(optionDef.dAppUIAddress)),
-                    creationHeight);
-                try {
-                    outputCandidates.add(dAppUIFeeBoxBuilder.build());
-                } catch (e) {
-                    console.log(`building error: ${e}`);
-                    throw e;
-                }
-
-                // Oracle box
-                const oracleBoxes = await boxByTokenId2(UNDERLYING_TOKENS.find(tok => tok.tokenId === optionDef.underlyingTokenId).oracleNFTID)
-
-                const tx = await createTransaction(boxSelection, outputCandidates, [oracleBoxes[0]], optionDef.issuerAddress, utxos, optionDef.txFee);
-                console.log("processBuyRequest tx", JSON.stringify(tx));
-                const wallet = (await ergolib).Wallet.from_mnemonic("", "");
-                const signedTxTmp = await signTransaction(tx, utxos, [parseUtxo(oracleBoxes[0])], wallet);
-                const signedTx = JSONBigInt.parse(signedTxTmp);
-                const txId = await sendTx(signedTx);
-                return txId;
             }
         }
 
