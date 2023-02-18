@@ -150,6 +150,14 @@ const TOKENS = [
         oracleTokenId: "576e9ccb7ee27341b097767a0cf3439c36747cf3226de9a88f314e878f893714",
         oracleType: "Spectrum LP",
         icon: "walrus.png",
+    },
+    {
+        name: "SPF",
+        tokenId: "9a06d9e545a41fd51eeffc5e20d818073bf820c635e2a9d922269913e0de369d",
+        decimals: 6,
+        oracleTokenId: "f40afb6f877c40a30c8637dd5362227285738174151ce66d6684bc1b727ab6cf",
+        oracleType: "Spectrum LP",
+        icon: "spf.svg",
     }
 
 ]
