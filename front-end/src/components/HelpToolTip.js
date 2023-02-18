@@ -14,7 +14,7 @@ export default function HelpToolTip(props) {
                     data-for={props.id}
                 />
                 <ReactTooltip id={props.id}
-                    place="right"
+                    place="down"
                     effect="solid"
                     data-html={true}
                     delayShow={300}
