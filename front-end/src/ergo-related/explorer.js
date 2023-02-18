@@ -242,6 +242,9 @@ export async function getOraclePrice(oracleNFTID) {
 export async function getTokenInfo(tokenId) {
     const res = await getRequestV1(`/tokens/${tokenId}`, LONG_CACHE);
     //console.log("getTokenInfo", res)
+    if (res.data?.status === 404) {
+        return;
+    }
     return res.data;
 }
 

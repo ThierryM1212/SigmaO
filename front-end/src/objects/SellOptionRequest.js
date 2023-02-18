@@ -54,12 +54,12 @@ export class SellOptionRequest {
         this.freezeDelay = sellParams[3];
         this.dAppUIFee = sellParams[4];
         this.dAppUIErgoTree = await decodeHex(getRegisterValue(this.full, "R7"));
-        const oracleNFTID = UNDERLYING_TOKENS.find(t => t.tokenId === optionDef.underlyingTokenId).oracleNFTID;
-        this.currentOraclePrice = await getOraclePrice(oracleNFTID);
+        const underlyingToken = UNDERLYING_TOKENS.find(t => t.tokenId === optionDef.underlyingTokenId)
+        this.currentOraclePrice = await getOraclePrice(underlyingToken.oracleNFTID);
         this.isFrozen = new Date().valueOf() > optionDef.maturityDate - this.freezeDelay;
         if(this.currentOraclePrice) {
             this.currentOptionPrice = getOptionPrice(optionDef.optionType, optionDef.optionStyle, (new Date()).valueOf(), optionDef.maturityDate, this.currentOraclePrice, 
-                optionDef.strikePrice, optionDef.shareSize, this.sigma, this.K1, this.K2);
+                optionDef.strikePrice * Math.pow(10, underlyingToken.decimals), optionDef.shareSize, this.sigma, this.K1, this.K2);
         }
         console.log("SellOptionRequest initialize", this)
     }

@@ -26,9 +26,10 @@ export default function SellOptionCard(props) {
     const sellOptionRequest = props.sellOptionRequest;
     const optionDef = sellOptionRequest.option.optionDef;
     var oraclePrice = sellOptionRequest.currentOraclePrice;
-    const optionPrice = getOptionPrice(optionDef.optionType, optionDef.optionStyle, (new Date()).valueOf(), optionDef.maturityDate,
-        oraclePrice, optionDef.strikePrice, optionDef.shareSize, sellOptionRequest.sigma, sellOptionRequest.K1, sellOptionRequest.K2);
     const underlyingTokenInfo = optionDef.underlyingTokenInfo;
+    const optionPrice = getOptionPrice(optionDef.optionType, optionDef.optionStyle, (new Date()).valueOf(), optionDef.maturityDate,
+        oraclePrice, optionDef.strikePrice * Math.pow(10, underlyingTokenInfo.decimals), optionDef.shareSize, sellOptionRequest.sigma, sellOptionRequest.K1, sellOptionRequest.K2);
+    
     console.log("SellOptionCard", props);
     const availableOptionAmount = sellOptionRequest.optionAmount / Math.pow(10, underlyingTokenInfo.decimals);
     return (

@@ -183,21 +183,26 @@ export default class SellOptionPage extends React.Component {
                                     </td>
                                     <td><small>Spread factor. Bigger decrease the option price with the price spread (ABS(strike price - oracle price))</small></td>
                                 </tr>
-                                <tr>
-                                    <td>K2 (‰)</td>
-                                    <td>
-                                        <div className='w-100'>
-                                            <input type="text"
-                                                id="K2"
-                                                className="form-control col-sm input-dark"
-                                                onChange={e => this.setK2(e.target.value)}
-                                                value={this.state.K2}
-                                                autoComplete="off"
-                                            />
-                                        </div>
-                                    </td>
-                                    <td><small>American factor. Bigger increase the price of the American option compared to the European option.</small></td>
-                                </tr>
+                                {
+                                    currentOption?.optionDef.optionStyle === 1 ? // American
+                                        <tr>
+                                            <td>K2 (‰)</td>
+                                            <td>
+                                                <div className='w-100'>
+                                                    <input type="text"
+                                                        id="K2"
+                                                        className="form-control col-sm input-dark"
+                                                        onChange={e => this.setK2(e.target.value)}
+                                                        value={this.state.K2}
+                                                        autoComplete="off"
+                                                    />
+                                                </div>
+                                            </td>
+                                            <td><small>American factor. Bigger increase the price of the American option compared to the European option.</small></td>
+                                        </tr>
+                                        : null
+                                }
+
                                 <tr>
                                     <td>Freeze delay (h)</td>
                                     <td>
@@ -233,7 +238,7 @@ export default class SellOptionPage extends React.Component {
                                                             <div>{
                                                                 formatERGAmount(getOptionPrice(currentOption.optionDef.optionType, currentOption.optionDef.optionStyle, new Date(),
                                                                     new Date(currentOption.optionDef.maturityDate),
-                                                                    this.state.oraclePrice, currentOption.optionDef.strikePrice, currentOption.optionDef.shareSize,
+                                                                    this.state.oraclePrice, currentOption.optionDef.strikePrice * Math.pow(10, currentToken.decimals), currentOption.optionDef.shareSize,
                                                                     this.state.sigma, this.state.K1, this.state.K2))
                                                             }</div>
                                                             : null

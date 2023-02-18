@@ -5,7 +5,7 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { errorAlert } from '../utils/Alerts';
 import { createOptionRequest } from "../actions/userOptionActions";
-import { getBalanceForAddress, getOraclePrice } from '../ergo-related/explorer';
+import { getBalanceForAddress, getOraclePrice, getTokenInfo } from '../ergo-related/explorer';
 import { formatERGAmount } from '../utils/utils';
 import { UNDERLYING_TOKENS } from '../utils/script_constants';
 import { Table } from 'react-bootstrap';
@@ -36,6 +36,7 @@ export default class MintOptionPage extends React.Component {
             optionType: optionsTypes[0].label,
             optionStyle: optionsStyles[1].label,
             underlyingTokenId: '',
+            underlyingTokenInfo: undefined,
             optionAmount: 10,
             shareSize: 1, // token per option, to be multiplied by decimal factor in contract
             strikePrice: 1000000, // nanoerg per token, to be adjusted by decimal factor in contract
@@ -70,14 +71,17 @@ export default class MintOptionPage extends React.Component {
     async setUnderlyingTokenId(tokenId) {
         //console.log("setUnderlyingToken", tokenId, UNDERLYING_TOKENS);
         var filteredTokenId = tokenId.replace(/[^0-9A-Fa-f]/g, "");
+        console.log("filteredTokenId", filteredTokenId);
+        const underlyingTokenInfo = await getTokenInfo(filteredTokenId);
+        console.log("underlyingTokenInfo", underlyingTokenInfo);
         const underlyingToken = UNDERLYING_TOKENS.find(tok => tok.tokenId === filteredTokenId);
         if (underlyingToken) {
             console.log("setUnderlyingToken underlyingToken", underlyingToken);
             const oraclePrice = await getOraclePrice(underlyingToken.oracleNFTID);
             console.log("setUnderlyingToken oraclePrice", oraclePrice);
-            this.setState({ underlyingTokenId: filteredTokenId, strikePrice: oraclePrice, oraclePrice: oraclePrice });
+            this.setState({ underlyingTokenId: filteredTokenId, strikePrice: oraclePrice, oraclePrice: oraclePrice, underlyingTokenInfo: underlyingTokenInfo });
         } else {
-            this.setState({ underlyingTokenId: filteredTokenId, oraclePrice: undefined, showPriceSimulation: false, });
+            this.setState({ underlyingTokenId: filteredTokenId, oraclePrice: undefined, showPriceSimulation: false, underlyingTokenInfo: underlyingTokenInfo });
         }
     };
     setOptionAmount = (amount) => { this.setState({ optionAmount: amount.replace(/[^0-9]/g, "") }); };
@@ -198,7 +202,10 @@ export default class MintOptionPage extends React.Component {
                                                     <TokenLink tokenId={currentToken.tokenId} />
                                                 </div>
                                                 :
-                                                <div></div>
+                                                this.state.underlyingTokenInfo ?
+                                                    <TokenLink tokenId={this.state.underlyingTokenInfo.id} name={this.state.underlyingTokenInfo.name} />
+                                                    :
+                                                    <div></div>
                                         }
                                     </td>
                                 </tr>
@@ -240,7 +247,7 @@ export default class MintOptionPage extends React.Component {
                                         />
                                     </td>
                                     <td><small>nanoERG per token</small>
-                                     ({formatERGAmount(Math.floor(this.state.strikePrice / Math.pow(10, currentToken?.decimals)) * Math.pow(10, currentToken?.decimals), strikePricePrecision)})</td>
+                                        ({formatERGAmount(Math.floor(this.state.strikePrice / Math.pow(10, this.state.underlyingTokenInfo?.decimals)) * Math.pow(10, this.state.underlyingTokenInfo?.decimals), strikePricePrecision)})</td>
                                 </tr>
                                 <tr>
                                     <td>Maturity date</td>
@@ -307,7 +314,7 @@ export default class MintOptionPage extends React.Component {
                                                         :
                                                         <strong>
                                                             {this.state.shareSize * this.state.optionAmount}
-                                                            {" " + currentToken?.name}
+                                                            {" " + this.state.underlyingTokenInfo?.name}
                                                         </strong>
                                                 }
                                             </td>
@@ -390,7 +397,7 @@ export default class MintOptionPage extends React.Component {
                                     </Table>
                                 </div>
                                 <div className='d-flex flex-wrap align-items-center'>
-                                    <PriceCharts 
+                                    <PriceCharts
                                         optionType={this.state.optionType}
                                         optionStyle={this.state.optionStyle}
                                         maturityDate={this.state.maturityDate}
