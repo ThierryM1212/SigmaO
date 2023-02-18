@@ -20,35 +20,48 @@ class CompiledContract {
         }
     }
 }
-
 class UnderlyingToken {
-    constructor(label, tokenId, decimals, oracleNFTID, oracleType, sellOptionScriptAddress) {
+    constructor(label, tokenId, decimals, oracleNFTID, oracleType, icon, sellOptionScriptAddress) {
         this.label = label;
         this.tokenId = tokenId;
         this.decimals = decimals;
         this.oracleNFTID = oracleNFTID;
         this.oracleType = oracleType;
+        this.icon = icon;
         this.sellOptionScriptAddress = sellOptionScriptAddress;
     }
 }
+function compileContract(contract, symbols = '') {
+    console.log(`Building contract ${contract} ${symbols} ...`)
+    var command = `java -cp ErgoScriptCompiler-assembly-0.1.jar Compile ${contract} ${symbols}`;
+    const compileOutput = execSync(command).toString();
+    const compiledContract = new CompiledContract(compileOutput);
+    return compiledContract;
+}
+
 const buildBaseDir = './build/';
+var jsTokenList = [], symbolFileName = '';
 
-var jsTokenList = [];
+// Compile static contracts
+const optionCompiledContract = compileContract('./Option.es');
+const buyCompiledContract = compileContract('./Buy_Token_Request.es');
+const sellFixedCompiledContract = compileContract('./Sell_Token_Request.es');
 
+// Compile Sell contracts depeding on tokenid and oracle nft
 for (var token of TOK.TOKENS) {
     const tokenTicker = token.name.toUpperCase()
 
-    console.log("Building contracts for " + tokenTicker + "/ERG")
     token.decimalFactor = Math.pow(10, token.decimals)
     if (token.oracleType === "Oracle") {
-        token.validOracle = fs.readFileSync('./templates/ValidOracle.template.es').toString()
+        token.validOracle = fs.readFileSync('./templates/ValidOracle.mu.es').toString()
     } else {
-        token.validOracle = fs.readFileSync('./templates/ValidOracleAMM.template.es').toString();
+        token.validOracle = fs.readFileSync('./templates/ValidOracleAMM.mu.es').toString();
     }
-    const optionScriptTemplate = fs.readFileSync('./templates/Option.template.es').toString();
-    const optionContract = Mustache.render(optionScriptTemplate, token);
+    const optionSellScriptTemplate = fs.readFileSync('./templates/Option_Sell.mu.es').toString();
+    const optionSellContract = Mustache.render(optionSellScriptTemplate, token);
 
-    const symbolsTemplate = fs.readFileSync('./templates/symbols.template.json').toString();
+    const symbolsTemplate = fs.readFileSync('./templates/symbols.json.mu').toString();
+    token.optionScriptHash = optionCompiledContract.scriptHash;
     const symbols = Mustache.render(symbolsTemplate, token);
 
     // Cleanup build directory
@@ -59,50 +72,31 @@ for (var token of TOK.TOKENS) {
     fs.mkdirSync(buildDir, { recursive: true });
     //console.log(output)
 
-    // Compile option contract
-    const optionContractFilename = buildDir + "/Option_" + tokenTicker + ".es";
-    const symbolFileName = buildDir + "/symbols_" + tokenTicker + ".json";
-    fs.writeFileSync(optionContractFilename, optionContract);
+    // Compile option sell contract
+    const optionSellContractFilename = buildDir + "/Option_Sell_" + tokenTicker + ".es";
+    symbolFileName = buildDir + "/symbols_" + tokenTicker + ".json";
+    fs.writeFileSync(optionSellContractFilename, optionSellContract);
     fs.writeFileSync(symbolFileName, symbols);
-    const command = 'java -cp ErgoScriptCompiler-assembly-0.1.jar Compile ' + optionContractFilename + ' ' + symbolFileName;
-    const compileOutput = execSync(command).toString();
-
-    // Update scriptHash in json file
-    const optionCompiledContract = new CompiledContract(compileOutput)
-    if (optionCompiledContract.scriptAddress !== "") {
-        var symbolFileJSON = require(symbolFileName);
-        for (const i in symbolFileJSON.symbols) {
-            if (symbolFileJSON.symbols[i].name === 'OptionCallScriptHash') {
-                symbolFileJSON.symbols[i].value = optionCompiledContract.scriptHash;
-            }
-        }
-        fs.writeFileSync(symbolFileName, JSON.stringify(symbolFileJSON, null, 4));
-    } else {
-        console.log("ERROR executing: ", command);
-        console.log("ERROR: ", compileOutput);
-        continue;
-    }
-
-    // Compile exercise request contract
-    const exerciseContractFileName = './Exercise_Option_Request.es';
-    const command1 = 'java -cp ErgoScriptCompiler-assembly-0.1.jar Compile ' + exerciseContractFileName + ' ' + symbolFileName;
-    const exerciseCompileOutput = execSync(command1).toString();
-    const exerciseCompiledContract = new CompiledContract(exerciseCompileOutput);
+    const optionSellCompiledContract = compileContract(optionSellContractFilename, symbolFileName);
 
     jsTokenList.push(new UnderlyingToken(token.name, token.tokenId, token.decimals, token.oracleTokenId, token.oracleType,
-        optionCompiledContract.scriptAddress, exerciseCompiledContract.scriptAddress))
+        token.icon, optionSellCompiledContract.scriptAddress))
 
 }
 
-// Compile buy request contract
-const buyContractFileName = './Buy_Option_Request.es';
-const command2 = 'java -cp ErgoScriptCompiler-assembly-0.1.jar Compile ' + buyContractFileName + " " + buildBaseDir  + jsTokenList[0].label.toUpperCase() + "/symbols_" + jsTokenList[0].label.toUpperCase() + ".json";
-const buyCompileOutput = execSync(command2).toString();
-const buyCompiledContract = new CompiledContract(buyCompileOutput);
+// Compile exercise request contract, linked with the option contract
+const exerciseCompiledContract = compileContract('./Exercise_Option_Request.es', symbolFileName);
 
-//console.log(JSON.stringify(jsTokenList, null, 4))
+const scriptConstants = {
+    buyOptionAddress: buyCompiledContract.scriptAddress,
+    optionAddress: optionCompiledContract.scriptAddress,
+    exerciseOptionAddress: exerciseCompiledContract.scriptAddress,
+    sellFixedAddress: sellFixedCompiledContract.scriptAddress,
+    underluyingTokensJSON: JSON.stringify(jsTokenList, null, 4), 
+}
 
-var scriptContantContent = 'export const BUY_OPTION_REQUEST_SCRIPT_ADDRESS="' + buyCompiledContract.scriptAddress + '";\n';
-scriptContantContent = scriptContantContent + "export const UNDERLYING_TOKENS = " + JSON.stringify(jsTokenList, null, 4);
+// Create the contant file
+const scriptConstantTemplate = fs.readFileSync('./templates/script_constants.js.mu').toString();
+const optionSellContract = Mustache.render(scriptConstantTemplate, scriptConstants);
+fs.writeFileSync(buildBaseDir + 'script_constants.js', optionSellContract);
 
-fs.writeFileSync(buildBaseDir + 'script_constants.js', scriptContantContent);

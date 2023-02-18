@@ -40,7 +40,7 @@ export default function ThemedSelect(props) {
          * indicators(separator)/backgroundColor
          * indicators(loading)/color
          */
-        neutral20: 'var(--neutral-20)',
+        neutral20: 'rgba(255, 255, 255, 0.25)',
 
         /*
          * control/borderColor(focused)
@@ -101,10 +101,34 @@ export default function ThemedSelect(props) {
         primary75: 'var(--my-bg-color3)',
     };
 
+    const styles = {
+        menu: ({ width, ...css }) => ({
+            ...css,
+            width: "max-content",
+            minWidth: "50px",
+            maxWidth: "250px",
+        }),
+        container: ({ width, ...css }) => ({
+            ...css,
+            width: "100%",
+            minWidth: "50px",
+        }),
+        singleValue: ({ width, ...css }) => ({
+            ...css,
+            width: "100%",
+            minWidth: "50px",
+        }),
+        control: ({ width, ...css }) => ({
+            ...css,
+            width: "100%",
+            minWidth: "50px",
+        }),
+      };
+
     return (
         <Fragment>
             <Select id={props.id}
-                className='d-flex justify-content-start selectReact'
+                className='d-flex justify-content-start input-dark'
                 value={{
                     value: props.value,
                     label: props.value
@@ -119,6 +143,7 @@ export default function ThemedSelect(props) {
                         ...colors
                     }
                 })}
+                styles={styles}
             />
         </Fragment>
 

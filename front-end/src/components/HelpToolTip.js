@@ -5,8 +5,7 @@ import ReactTooltip from "react-tooltip";
 export default function HelpToolTip(props) {
     return (
         <Fragment>
-            &nbsp;
-            <div className="d-flex flex-column align-items-center">
+            <div>
                 <img
                     src={props.image}
                     alt={"help tooltip"}

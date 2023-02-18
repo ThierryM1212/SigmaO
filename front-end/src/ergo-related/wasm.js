@@ -29,14 +29,14 @@ async function boxCandidatesToJsonMin(boxCandidates) {
 }
 
 export async function createTransaction(boxSelection, outputCandidates, dataInputs, changeAddress, utxos, txFee, burnTokens = false) {
-    console.log("createTransaction utxos", utxos);
+    //console.log("createTransaction utxos", utxos);
     const creationHeight = await currentHeight();
 
     // build the change box
     var outputJs = await boxCandidatesToJsonMin(outputCandidates);
     const missingErgs = getMissingErg(utxos, outputJs) - BigInt(txFee);
     const tokens = getMissingTokens(utxos, outputJs);
-    console.log("missing tokens, missingErgs", tokens, missingErgs);
+    //console.log("missing tokens, missingErgs", tokens, missingErgs);
 
     if (!burnTokens && (missingErgs > 0 || Object.keys(tokens).length > 0)) {
         const changeBoxValue = (await ergolib).BoxValue.from_i64((await ergolib).I64.from_str(missingErgs.toString()));

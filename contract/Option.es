@@ -169,8 +169,7 @@
         OUTPUTS(0).propositionBytes == issuerErgoTree              &&
         OUTPUTS(0).value >= valueIn - TxFee                        &&
         output0Token0._1 == selfToken1._1                          && //return underlying tokens if any
-        output0Token0._2 == selfToken1._2                          &&
-        OUTPUTS(0).tokens.size <= 1 // burn the option
+        output0Token0._2 == selfToken1._2
     } else {
         false
     }

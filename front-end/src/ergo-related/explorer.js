@@ -109,8 +109,8 @@ export async function boxByIdv2(id) {
 }
 
 /////
-export async function boxByTokenId(tokenId) {
-    const res = await getRequestV1(`/boxes/unspent/byTokenId/${tokenId}`);
+export async function boxByTokenId(tokenId, ttl = 0) {
+    const res = await getRequestV1(`/boxes/unspent/byTokenId/${tokenId}`, ttl);
     return res.data.items;
 }
 export async function boxByTokenId2(tokenId) {
@@ -147,9 +147,9 @@ export async function getSpentAndUnspentBoxesFromMempool(address) {
     }
 }
 
-export async function getUnspentBoxesForAddressUpdated(address) {
+export async function getUnspentBoxesForAddressUpdated(address, limit = 50) {
     try {
-        const boxesTmp = await getUnspentBoxesByAddress(address);
+        const boxesTmp = await getUnspentBoxesByAddress(address, limit);
         const [spentBoxes, newBoxes] = await getSpentAndUnspentBoxesFromMempool(address);
         const spentBoxIds = spentBoxes.map(box => box.boxId);
         const boxes = newBoxes.concat(boxesTmp).filter(box => !spentBoxIds.includes(box.boxId));
@@ -171,11 +171,16 @@ export async function searchUnspentBoxes(address, tokens, registers = {}, limit 
     }
     const res = await post(explorerApiV1 + `/boxes/unspent/search?limit=${limit}`, searchParam);
     console.log("searchUnspentBoxes", res);
-    return res.data.items;
+    if (res.result) {
+        return res.data.items;
+    } else {
+        return [];
+    }
+    
 }
 
-export async function searchUnspentBoxesUpdated(address, tokens, registers = {}) {
-    const currentBlobBoxes = await searchUnspentBoxes(address, tokens, registers);
+export async function searchUnspentBoxesUpdated(address, tokens, registers = {}, limit = 50) {
+    const currentBlobBoxes = await searchUnspentBoxes(address, tokens, registers, limit);
     const [spentBlobs, newBlobs] = await getSpentAndUnspentBoxesFromMempool(address);
     const spentBlobBoxIds = spentBlobs.map(box => box.boxId);
     console.log("searchUnspentBoxesUpdated", newBlobs
@@ -198,28 +203,28 @@ export async function getExplorerBlockHeadersFull() {
 }
 
 export async function getBalanceForAddress(addr) {
-    const res = await getRequestV1(`/addresses/${addr}/balance/total`);
+    const res = await getRequestV1(`/addresses/${addr}/balance/total`, SHORT_CACHE);
     console.log("getBalanceUnconfirmedForAddress", res)
     return res.data;
 }
 
 export async function getOraclePrice(oracleNFTID) {
-    console.log("getOraclePrice", oracleNFTID);
-    const oracleBoxes = await boxByTokenId(oracleNFTID);
-    console.log("oracleBoxes", oracleBoxes);
-    if (oracleBoxes && oracleBoxes.length == 1) {
+    //console.log("getOraclePrice", oracleNFTID);
+    const oracleBoxes = await boxByTokenId(oracleNFTID, SHORT_CACHE);
+    //console.log("oracleBoxes", oracleBoxes);
+    if (oracleBoxes && oracleBoxes.length === 1) {
         try {
             if (oracleBoxes[0].assets.length === 1) { // Oracle
                 return oracleBoxes[0].additionalRegisters.R4.renderedValue
             } else { // AMM LP box
                 // oracleBox.value / (oracleBox.tokens(2)._2 / UnderlyingAssetDecimalFactor)
-                console.log("oracleBox", oracleBoxes[0]);
+                //console.log("oracleBox", oracleBoxes[0]);
                 const nanoergValue = parseInt(oracleBoxes[0].value)
                 const tokenAmount = parseInt(oracleBoxes[0].assets[2].amount)
                 const tokenDecimals = parseInt(oracleBoxes[0].assets[2].decimals)
 
                 const oraclePrice = Math.round(nanoergValue / (tokenAmount / Math.pow(10, tokenDecimals))).toString();
-                console.log("oraclePrice AMM", oraclePrice);
+                //console.log("oraclePrice AMM", oraclePrice);
                 return oraclePrice;
             }
 
@@ -236,8 +241,14 @@ export async function getOraclePrice(oracleNFTID) {
 
 export async function getTokenInfo(tokenId) {
     const res = await getRequestV1(`/tokens/${tokenId}`, LONG_CACHE);
-    console.log("getTokenInfo", res)
+    //console.log("getTokenInfo", res)
     return res.data;
+}
+
+export async function getTokenBox(addr) {
+    const res = await getRequest(`/assets/${addr}/issuingBox`);
+    console.log(res);
+    return res.data[0];
 }
 
 export async function getTokensForAddress(address) {

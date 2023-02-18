@@ -1,15 +1,14 @@
 import React, { Fragment } from 'react';
-import { MIN_NANOERG_BOX_VALUE, OPTION_STYLES, OPTION_TYPES, TX_FEE } from '../utils/constants';
+import { MIN_NANOERG_BOX_VALUE, OPTION_STYLES, OPTION_TYPES } from '../utils/constants';
 import Table from 'react-bootstrap/Table';
 import { getUnspentBoxesForAddressUpdated } from '../ergo-related/explorer';
-import { promptOptionAmount } from '../utils/Alerts';
+import { displayTransaction, promptOptionAmount } from '../utils/Alerts';
 import { formatERGAmount, formatLongString } from '../utils/utils';
 import { OPTION_SCRIPT_ADDRESS } from '../utils/script_constants';
 import { Option } from '../objects/Option';
 import { closeOptionExpired, deliverOption, mintOption } from '../actions/botOptionAction';
 import { exerciseOptionRequest, refundOptionRequest } from '../actions/userOptionActions';
 
-/* global BigInt */
 
 export default class Options extends React.Component {
     constructor(props) {
@@ -30,21 +29,24 @@ export default class Options extends React.Component {
         this.setState({ optionList: allOptions2 })
     }
 
-    async exerciseOption(optionTokenID) {
+    async exerciseOption(optionTokenId) {
         const amount = await promptOptionAmount("Option amount to exercise");
-        await exerciseOptionRequest(optionTokenID, amount);
+        await exerciseOptionRequest(optionTokenId, amount);
     }
 
     async closeOption(box, issuerAddress) {
-        await closeOptionExpired(box, issuerAddress);
+        const txId = await closeOptionExpired(box, issuerAddress);
+        displayTransaction(txId);
     }
 
     async deliverOption(box) {
-        await deliverOption(box);
+        const txId = await deliverOption(box);
+        displayTransaction(txId);
     }
 
     async mintOption(requestBox) {
-        await mintOption(requestBox);
+        const txId = await mintOption(requestBox);
+        displayTransaction(txId);
     }
 
     async refundRequest(requestBox) {
@@ -82,8 +84,10 @@ export default class Options extends React.Component {
                                 this.state.optionList.map(opt => {
                                     //console.log("opt", opt)
                                     const creationBox = opt.optionDef;
+                                    const isClosable = opt.isEmpty || (!creationBox.isExercible && creationBox.isExpired)
+                                    console.log("opt", opt);
                                     if (!creationBox) {
-                                        return;
+                                        return <div></div>;
                                     }
                                     return <tr key={creationBox.full.boxId}>
                                         <td>{OPTION_TYPES.find(opt => opt.id === creationBox.optionType).label}</td>
@@ -110,14 +114,14 @@ export default class Options extends React.Component {
                                         <td>{formatERGAmount(creationBox.dAppUIMintFee)} ERG</td>
                                         <td>{formatERGAmount(creationBox.txFee)} ERG</td>
                                         <td>
-                                            <button className='btn btn-blue' 
-                                            onClick={() => this.exerciseOption(creationBox.full.boxId)}
-                                            disabled={!opt.isExercible}>
+                                            <button className='btn btn-blue'
+                                                onClick={() => this.exerciseOption(creationBox.full.boxId)}
+                                                disabled={!creationBox.isExercible}>
                                                 Exercise
-                                                </button>
+                                            </button>
                                             <button className='btn btn-yellow'
                                                 onClick={() => this.closeOption(opt.full, creationBox.issuerAddress)}
-                                                disabled={!opt.isEmpty || (!opt.isExercible && opt.isExpired)}>
+                                                disabled={!isClosable}>
                                                 Close
                                             </button>
                                             <button className='btn btn-yellow'

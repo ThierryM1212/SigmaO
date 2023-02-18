@@ -68,15 +68,16 @@ function getDateRange(startDate, stopDate, numPoints) {
 }
 
 export function OptionPriceTimeChart(props) {
+    console.log("OptionPriceTimeChart", props);
     const labels = getDateRange(new Date(), props.maturityDate, 20);
-    const optionTypeNum = OPTION_TYPES.find(o => o.label === props.optionType).id;
-    const optionStyleNum = OPTION_STYLES.find(o => o.label === props.optionStyle).id;
+    const optionTypeNum = OPTION_TYPES.find(o => o.label === props.optionType)?.id ?? props.optionType;
+    const optionStyleNum = OPTION_STYLES.find(o => o.label === props.optionStyle)?.id ?? props.optionStyle;
     var dataSets = [];
     const optionPrices = labels.map(pricingDate => parseInt(getOptionPrice(optionTypeNum, optionStyleNum, pricingDate, props.maturityDate, props.oraclePrice, props.strikePrice,
         props.shareSize, props.sigma, props.K1, props.K2)));
     dataSets.push(
         {
-            label: 'Option price over time',
+            label: 'Option price SigmaO over time',
             data: optionPrices,
             borderColor: 'rgb(0, 99, 0)',
             backgroundColor: 'rgba(0, 99, 0, 0.5)',

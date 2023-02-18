@@ -3,7 +3,7 @@ import Table from 'react-bootstrap/Table';
 import { getUnspentBoxesForAddressUpdated } from '../ergo-related/explorer';
 import { formatERGAmount, formatLongString } from '../utils/utils';
 import { ExerciseOptionRequest } from '../objects/ExerciseOptionRequest';
-import { EXERCISE_OPTION_REQUEST_SCRIPT_ADDRESS, UNDERLYING_TOKENS } from '../utils/script_constants';
+import { EXERCISE_OPTION_REQUEST_SCRIPT_ADDRESS } from '../utils/script_constants';
 import { processExerciseRequest } from '../actions/botOptionAction';
 import { refundBuyRequest } from '../actions/BuyRequestActions';
 
@@ -27,8 +27,8 @@ export default class ExerciseOptionRequests extends React.Component {
         await this.fetchOptionRequests();
     }
 
-    async processExercise(box) {
-        await processExerciseRequest(box);
+    async processExercise(exerciseRequest) {
+        await processExerciseRequest(exerciseRequest);
     }
     
     async refundRequest(box) {
@@ -56,12 +56,12 @@ export default class ExerciseOptionRequests extends React.Component {
                                     return <tr key={exerciseRequest.full.boxId}>
                                         <td>{formatLongString(exerciseRequest.full.boxId, 6)}</td>
                                         <td>{formatLongString(exerciseRequest.exerciseAddress, 6)}</td>
-                                        <td>{formatLongString(exerciseRequest.optionTokenID, 6)}</td>
+                                        <td>{formatLongString(exerciseRequest.optionTokenId, 6)}</td>
                                         <td>{exerciseRequest.optionAmount}</td>
                                         <td>{formatERGAmount(exerciseRequest.value)} ERG</td>
                                         <td>
                                             <div className='d-flex flex-row justify-content-center'>
-                                                <button className='btn btn-yellow' onClick={() => this.processExercise(exerciseRequest.full)}>Process</button>
+                                                <button className='btn btn-yellow' onClick={() => this.processExercise(exerciseRequest)}>Process</button>
                                                 &nbsp;
                                                 <button className='btn btn-blue' onClick={() => this.refundRequest(exerciseRequest.full)}>Refund</button>
                                             </div>

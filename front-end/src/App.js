@@ -1,26 +1,44 @@
 import './App.css';
 import React from 'react';
-import InputAddress from './components/InputAddress';
 import Footer from './components/Footer';
 import MintTabs from './components/MintTabs';
-import SigmaOLogo from './images/sigmaOLogo_24dp.svg';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import NavigationBar from './components/NavigationBar';
+import HomePage from './pages/HomePage';
+import ExerciseOptionsPage from './pages/ExerciseOptionsPage';
+import BuyOptionsPage from './pages/BuyOptionsPage';
+import MintOptionPage from './pages/MintOptionPage';
+import SellOptionPage from './pages/SellOptionPage';
+import OptionDetailWrapper from './components/OptionDetailWrapper';
+import UserDashboard from './pages/UserDashboard';
+import SellTokenPage from './pages/SellTokenPage';
+import BuyTokensPage from './pages/BuyTokensPage';
+//import MatrixBackground from './components/MatrixBackground';
 
 export default class App extends React.Component {
 
   render() {
     return (
-      <div className="App d-flex flex-column justify-content-between align-items-center">
-        <div className="w-100 d-flex flex-column align-items-center">
-          <div className="w-100 d-flex flex-row justify-content-between align-items-center bggrey">
-            <div className='d-flex flex-column  align-items-start m-1 p-1'>
-              <h2><img src={SigmaOLogo} alt='logo' width={48} />&nbsp;Sigma'O</h2>
-              
-            </div>
-            <InputAddress />
+      <div className="App">
+        {/* <MatrixBackground timeout={60}/> */}
+        <BrowserRouter >
+          <NavigationBar />
+          <div className='page-container'>
+            <Routes>
+              <Route path={"/"} element={<HomePage />} />
+              <Route path={"/dashboard"} element={<UserDashboard />} />
+              <Route path={"/mint-options"} element={<MintOptionPage />} />
+              <Route path={"/exercise-options"} element={<ExerciseOptionsPage />} />
+              <Route path={"/buy-options"} element={<BuyOptionsPage />} />
+              <Route path={"/sell-options"} element={<SellOptionPage />} />
+              <Route path={"/buy-tokens"} element={<BuyTokensPage />} />
+              <Route path={"/sell-tokens"} element={<SellTokenPage />} />
+              <Route path={"/dev"} element={<MintTabs />} />
+              <Route path={"/option-details/:tokenId"} element={<OptionDetailWrapper />} />
+            </Routes>
           </div>
-          <MintTabs />
-        </div>
-        <Footer />
+          <Footer />
+        </BrowserRouter>
       </div>
     );
   }

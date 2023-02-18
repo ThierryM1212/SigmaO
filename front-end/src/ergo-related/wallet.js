@@ -1,7 +1,7 @@
 import JSONBigInt from 'json-bigint';
 import { displayErgoPayTransaction, errorAlert } from '../utils/Alerts';
 import { promiseTimeout } from '../utils/utils';
-import { getBalanceForAddress, getExplorerBlockHeadersFull, getUnconfirmedTxsFor, getUnspentBoxesForAddressUpdated } from './explorer';
+import { getBalanceForAddress, getUnconfirmedTxsFor, getUnspentBoxesForAddressUpdated } from './explorer';
 import { getTxReducedB64Safe } from './wasm';
 let ergolib = import('ergo-lib-wasm-browser');
 
@@ -196,6 +196,7 @@ export async function getUtxos(amountToSend) {
     const fullAmountToSend = BigInt(amountToSend);
     const walletAccessGranted = await connectWallet();
     if (walletAccessGranted && hasExtensionConnector()) {
+        console.log("walletAccessGranted")
         const utxos = await ergo.get_utxos(fullAmountToSend.toString());
         const filteredUtxos = [];
         if (utxos && Array.isArray(utxos)) {

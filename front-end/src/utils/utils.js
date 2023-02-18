@@ -14,8 +14,14 @@ export function formatLongString(str, num) {
     }
 }
 
-export function formatERGAmount(amountStr) {
-    return parseFloat(parseInt(amountStr) / NANOERG_TO_ERG).toFixed(4);
+export function formatERGAmount(amountStr, precision = 4) {
+    const ergAmount = parseFloat(parseInt(amountStr) / NANOERG_TO_ERG);
+    if (ergAmount > 0 && ergAmount < 1 / Math.pow(10, precision)) {
+        return amountStr + ' nanoERG'
+    } else {
+        return parseFloat(parseInt(amountStr) / NANOERG_TO_ERG).toFixed(precision) + " ERG";
+    }
+
 }
 
 export function promiseTimeout(ms, promise) {
@@ -35,6 +41,10 @@ export function promiseTimeout(ms, promise) {
 
 export function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+export function getKeyByValue(object, value) {
+    return Object.keys(object).find(key => object[key] === value);
 }
 
 export function maxBigInt(...values) {
@@ -86,6 +96,7 @@ function sqrtBigInt(i) {
 }
 
 export function getOptionPrice(optionType, optionStyle, currentDateUNIX, maturityDate, currentOraclePrice, strikePrice, shareSize, sigma, K1, K2) {
+    console.log("getOptionPrice", optionType, optionStyle, currentDateUNIX, maturityDate, currentOraclePrice, strikePrice, shareSize, sigma, K1, K2)
     try {
         const remainingDuration = BigInt(maturityDate) - BigInt(currentDateUNIX);
 
@@ -99,16 +110,16 @@ export function getOptionPrice(optionType, optionStyle, currentDateUNIX, maturit
         //console.log("getOptionPrice1", beforePoint, afterPoint, sqrtDuration, Math.sqrt(parseInt(remainingDuration)))
         const maxTimeValue = (BigInt(4) * BigInt(sigma) * BigInt(shareSize) * BigInt(strikePrice) * sqrtDuration) / (BigInt(10) * BigInt(1000) * BigInt(177584))
         const priceSpread = maxBigInt(
-            BigInt(currentOraclePrice) - BigInt(strikePrice), 
+            BigInt(currentOraclePrice) - BigInt(strikePrice),
             BigInt(strikePrice) - BigInt(currentOraclePrice)
-            )
+        )
         const sqrtPriceSpread = sqrtBigInt(priceSpread);
         const sqrtStrikePrice = sqrtBigInt(BigInt(strikePrice));
         //console.log("getOptionPrice2", maxTimeValue, priceSpread)
         const europeanTimeValue = maxBigInt(
             BigInt(0),
             maxTimeValue - (maxTimeValue * BigInt(K1) * sqrtPriceSpread * BigInt(177584)) / (BigInt(1000) * sqrtStrikePrice * maxBigInt(BigInt(1), sqrtDuration))
-            )
+        )
 
         const americanTimeValue = europeanTimeValue + (europeanTimeValue * BigInt(K2) * sqrtDuration) / (BigInt(1000) * BigInt(177584))
         //console.log("getOptionPrice3", europeanTimeValue, americanTimeValue, americanTimeValue - europeanTimeValue, parseFloat(sqrtDuration) / 177584)
@@ -150,7 +161,7 @@ export function getOptionPriceBS(optionType, currentDateUNIX, maturityDate, curr
             optionTypeTxt = 'put';
         }
         const optionPrice = blackScholes.blackScholes(currentOraclePrice, strikePrice, t, sigma / 1000, 0, optionTypeTxt);
-        return maxBigInt(BigInt(MIN_NANOERG_BOX_VALUE), BigInt(Math.round(optionPrice * shareSize)));
+        return BigInt(Math.round(optionPrice * shareSize));
 
     } catch (e) {
         console.log("Error getOptionPrice", e);

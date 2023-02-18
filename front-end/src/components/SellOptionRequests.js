@@ -4,10 +4,9 @@ import { getUnspentBoxesForAddressUpdated } from '../ergo-related/explorer';
 import { formatERGAmount, formatLongString } from '../utils/utils';
 import { UNDERLYING_TOKENS } from '../utils/script_constants';
 import { SellOptionRequest } from '../objects/SellOptionRequest';
-import { createBuyRequest, refundSellOption } from '../actions/BuyRequestActions';
+import { createBuyOptionRequest, refundSellOption } from '../actions/BuyRequestActions';
 import { promptOptionAmount } from '../utils/Alerts';
-
-/* global BigInt */
+import { closeSellOption } from '../actions/botOptionAction';
 
 
 export default class SellOptionRequests extends React.Component {
@@ -21,10 +20,8 @@ export default class SellOptionRequests extends React.Component {
 
     async fetchSellOptionRequests() {
         const sellScriptAddresses = UNDERLYING_TOKENS.map(t => t.sellOptionScriptAddress)
-        console.log("sellScriptAddresses", sellScriptAddresses);
         const sellOptionsRequestsBoxes = (await Promise.all(sellScriptAddresses.map(async addr => getUnspentBoxesForAddressUpdated(addr)))).flat();
         const sellOptionsRequests = await Promise.all(sellOptionsRequestsBoxes.map(async box => { return await SellOptionRequest.create(box) }));
-        console.log("fetchSellOptionRequests", sellOptionsRequests);
         this.setState({ sellOptionRequestsList: sellOptionsRequests })
     }
 
@@ -33,17 +30,21 @@ export default class SellOptionRequests extends React.Component {
     }
 
     async buyOption(sellRequest) {
-        console.log("buyOption")
+        //console.log("buyOption")
         const optionAmount = await promptOptionAmount("Amount of option to buy");
-        await createBuyRequest(sellRequest,
+        await createBuyOptionRequest(sellRequest,
             optionAmount,
             Math.floor(parseInt(sellRequest.optionCurrentPrice) * 1.01)); // 1% slippage TO DO configure
     }
 
-    async refund(box, closeEmpty) {
-        console.log("refund")
+    async refund(box) {
+        //console.log("refund", box)
+        await refundSellOption(box);
+    }
 
-        await refundSellOption(box, closeEmpty);
+    async closeEmptySellOption(sellRequest) {
+        //console.log("closeEmptySellOption", box)
+        await closeSellOption(sellRequest);
     }
 
     render() {
@@ -67,13 +68,13 @@ export default class SellOptionRequests extends React.Component {
                                     return <tr key={sellRequest.full.boxId}>
                                         <td>{formatLongString(sellRequest.full.boxId, 6)}</td>
                                         <td>{formatLongString(sellRequest.sellerAddress, 6)}</td>
-                                        <th>{formatLongString(sellRequest.optionDef.optionTokenId, 6)}</th>
-                                        <th>{sellRequest.optionAmount / Math.pow(10, sellRequest.optionDef.underlyingTokenInfo.decimals)}</th>
+                                        <th>{formatLongString(sellRequest.option.optionDef.optionTokenId, 6)}</th>
+                                        <th>{sellRequest.optionAmount / Math.pow(10, sellRequest.option.optionDef.underlyingTokenInfo.decimals)}</th>
                                         <th>{formatERGAmount(sellRequest.optionCurrentPrice)} ERG</th>
                                         <td>
                                             <button className='btn btn-blue' onClick={() => this.buyOption(sellRequest)}>Buy</button>
-                                            <button className='btn btn-blue' onClick={() => this.refund(sellRequest.full, false)}>Refund</button>
-                                            <button className='btn btn-yellow' onClick={() => this.refund(sellRequest.full, true)}>Close</button>
+                                            <button className='btn btn-blue' onClick={() => this.refund(sellRequest.full)}>Refund</button>
+                                            <button className='btn btn-yellow' onClick={() => this.closeEmptySellOption(sellRequest)}>Close</button>
                                         </td>
                                     </tr>
                                 })

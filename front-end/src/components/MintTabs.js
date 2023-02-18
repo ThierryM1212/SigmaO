@@ -1,18 +1,15 @@
 import React from 'react';
 import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
 import './react-tabs.css';
-import MintOption from './MintOption';
+import MintOptionPage from '../pages/MintOptionPage';
 import Options from './Options';
 import BuyOptionRequests from './BuyOptionRequests';
 import ExerciseOptionRequests from './ExerciseOptionRequests';
-import MintSellOption from './MintSellOption';
+import SellOptionPage from '../pages/SellOptionPage';
 import SellOptionRequests from './SellOptionRequests';
 
 
 export default class MintTabs extends React.Component {
-    constructor(props) {
-        super(props);
-    }
 
     render() {
         return (
@@ -55,7 +52,7 @@ export default class MintTabs extends React.Component {
                         <Options />
                     </TabPanel>
                     <TabPanel key={2}>
-                        <MintOption />
+                        <MintOptionPage />
                     </TabPanel>
                     <TabPanel key={3}>
                         <BuyOptionRequests />
@@ -64,7 +61,7 @@ export default class MintTabs extends React.Component {
                         <ExerciseOptionRequests />
                     </TabPanel>
                     <TabPanel key={5}>
-                        <MintSellOption />
+                        <SellOptionPage />
                     </TabPanel>
                     <TabPanel key={6}>
                         <SellOptionRequests />

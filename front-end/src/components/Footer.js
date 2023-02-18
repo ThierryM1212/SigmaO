@@ -3,7 +3,7 @@ import githubLogo from "../images/Github.png";
 
 export default function Footer() {
     return (
-        <div className="bggrey w-100">
+        <div className="bggrey footer">
             <div >
                 © 2023 Haileypdll/ThierryM1212
                 &nbsp;

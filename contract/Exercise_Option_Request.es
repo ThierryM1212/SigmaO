@@ -12,16 +12,16 @@
     // Ensure we get the right amount of Token or ERG in OUTPUTS(1)
     val validExerciseOption = if (OUTPUTS.size == 4 && selfToken0._2 > 0L) {
         val optionCreationBox: Box = SELF.R5[Box].get
-        val optionTokenID: Coll[Byte] = optionCreationBox.id
+        val optionTokenId: Coll[Byte] = optionCreationBox.id
         val underlyingAssetTokenId: Coll[Byte] = optionCreationBox.R5[Coll[Byte]].get
-        val validCreationBox: Boolean = selfToken0._1 == optionTokenID                                          &&
+        val validCreationBox: Boolean = selfToken0._1 == optionTokenId                                          &&
                                         blake2b256(optionCreationBox.propositionBytes) == OptionCallScriptHash
 
         val optionType: Long = optionCreationBox.R8[Coll[Long]].get(0)
         val shareSize: Long = optionCreationBox.R8[Coll[Long]].get(2)
         val strikePrice: Long = optionCreationBox.R8[Coll[Long]].get(4)
         val TxFee: Long = optionCreationBox.R8[Coll[Long]].get(6)
-        val numProvidedOption: Long = if (selfToken0._1 == optionTokenID) {
+        val numProvidedOption: Long = if (selfToken0._1 == optionTokenId) {
             selfToken0._2
         } else {
             0L

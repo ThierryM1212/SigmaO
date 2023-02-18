@@ -38,7 +38,7 @@ export async function get(url, apiKey = '', ttl = 0) {
                 api_key: apiKey,
             }
         });
-        console.log("get", result)
+        //console.log("get", result)
         const resJson = await result.json();
         if (ttl > 0 && result.status === 200) {
             res_cache = ls.get('web_cache_' + ttl.toString()) ?? {};

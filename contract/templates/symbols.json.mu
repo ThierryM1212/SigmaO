@@ -18,22 +18,12 @@
         {
             "name": "OptionCallScriptHash",
             "type": "CollByte",
-            "value": "0000"
-        },
-        {
-            "name": "HourInMilli",
-            "type": "Long",
-            "value": "3600000"
+            "value": "{{optionScriptHash}}"
         },
         {
             "name": "BoxMinValue",
             "type": "Long",
             "value": "1000000"
-        },
-        {
-            "name": "TxFee",
-            "type": "Long",
-            "value": "1100000"
         }
     ]
 }

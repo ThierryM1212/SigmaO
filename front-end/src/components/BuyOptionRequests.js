@@ -1,10 +1,12 @@
 import React, { Fragment } from 'react';
 import Table from 'react-bootstrap/Table';
 import { getUnspentBoxesForAddressUpdated } from '../ergo-related/explorer';
-import { BuyOptionRequest } from '../objects/BuyOptionRequest';
+import { BuyTokenRequest } from '../objects/BuyTokenRequest';
 import { formatLongString } from '../utils/utils';
-import { processBuyRequest, refundBuyRequest } from '../actions/BuyRequestActions';
-import { BUY_OPTION_REQUEST_SCRIPT_ADDRESS } from '../utils/script_constants';
+import { refundBuyRequest } from '../actions/BuyRequestActions';
+import { BUY_TOKEN_REQUEST_SCRIPT_ADDRESS } from '../utils/script_constants';
+import { displayTransaction } from '../utils/Alerts';
+import { processBuyRequest } from '../actions/botOptionAction';
 
 /* global BigInt */
 
@@ -19,8 +21,8 @@ export default class BuyOptionRequests extends React.Component {
     }
 
     async fetchOptionRequests() {
-        const buyOptionsRequestsBoxes = await getUnspentBoxesForAddressUpdated(BUY_OPTION_REQUEST_SCRIPT_ADDRESS);
-        const buyOptionsRequests = await Promise.all(buyOptionsRequestsBoxes.map(async box => {return await BuyOptionRequest.create(box)}));
+        const buyOptionsRequestsBoxes = await getUnspentBoxesForAddressUpdated(BUY_TOKEN_REQUEST_SCRIPT_ADDRESS);
+        const buyOptionsRequests = await Promise.all(buyOptionsRequestsBoxes.map(async box => {return await BuyTokenRequest.create(box)}));
         this.setState({ buyOptionRequestsList: buyOptionsRequests })
     }
 
@@ -29,8 +31,8 @@ export default class BuyOptionRequests extends React.Component {
     }
 
     async processBuy(buyRequest) {
-        console.log("processBuy")
-        await processBuyRequest(buyRequest);
+        const txId = await processBuyRequest(buyRequest);
+        displayTransaction(txId);
     }
 
     async refundRequest(box) {
@@ -58,7 +60,7 @@ export default class BuyOptionRequests extends React.Component {
                                     return <tr key={buyRequest.full.boxId}>
                                         <td>{formatLongString(buyRequest.full.boxId, 6) }</td>
                                         <td>{formatLongString(buyRequest.buyerAddress, 6)}</td>
-                                        <th>{formatLongString(buyRequest.optionTokenID, 6)}</th>
+                                        <th>{formatLongString(buyRequest.optionTokenId, 6)}</th>
                                         <th>{buyRequest.optionAmount}</th>
                                         <th>{buyRequest.buyRequestValue}</th>
                                         <td>

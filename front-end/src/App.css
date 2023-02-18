@@ -9,17 +9,45 @@
 }
 
 .App {
-  text-align: center;
+  text-align: start;
   padding: 0;
   align-items: center;
-  justify-content: center;
+  justify-content: top;
   display: flex;
   flex-direction: column;
   color: var(--my-text-color);
   min-height: 100vh;
-  min-width: 500px;
+  overflow: visible;
   font-family: 'Trebuchet MS', sans-serif;
-  background: rgba(0, 0, 0, 0.9);
+  background: rgba(0, 0, 0, 0.95);
+  background-size: 100% 100%;
+}
+
+.footer {
+  min-height:50px;
+}
+
+.page-container { flex:1; }
+
+#navbar {
+  overflow: hidden;
+  background-color: #030f27;
+  top: 0;
+  z-index: 1;
+}
+
+.table tr {
+  border-top-style: hidden !important;
+}
+
+h6 h5 {
+  text-align: start;
+}
+
+.table td {
+  padding: 0.25rem;
+  vertical-align: middle;
+  text-align: left;
 }
 
 @import 'sweetalert2/dist/sweetalert2.css';
@@ -36,11 +64,31 @@
   background: rgba(0, 0, 0, 0.05);
 }
 
+.option-card {
+  background: rgba(0, 0, 0, 0.1);
+  max-width: 20rem;
+  border-color: rgba(255, 255, 255, 0.25);
+}
+
+.sell-option-card {
+  background: rgba(0, 0, 0, 0.1);
+  border-color: rgba(255, 255, 255, 0.25);
+}
+
+main{ flex:1; }
+
 .input-dark,
-.input-dark:focus,
-.input-dark:active {
-  background-color: rgba(0, 0, 0, 0.05);
+.input-dark:focus {
+  background-color: var(--my-bg-color4);
   color: var(--my-text-color);
+  border-color: rgba(255, 255, 255, 0.25);
+}
+
+.input-dark:hover,
+.input-dark:active {
+  background-color: var(--my-bg-color4);
+  color: var(--my-text-color);
+  border-color: rgba(255, 255, 255, 0.8);
 }
 
 .zoneaddress {
@@ -63,9 +111,14 @@
   border-radius: 10px;
 }
 
+.gold-border {
+  border: 3px solid var(--my-bg-yellow);
+  border-radius: 5px;
+}
+
 .graph-container {
-  height: 25vh;
-  width: 35vw;
+  min-height: 25vh;
+  min-width: 30rem;
 }
 
 .limit-width {
@@ -113,4 +166,38 @@
 
 .btn-yellow {
   background: var(--my-bg-yellow);
+}
+
+
+.parent-image {
+  background: url('./images/option_24dp.svg') no-repeat;
+  background-size:100% 100%;
+  text-align: center;
+  vertical-align: middle;
+}
+
+.Centerer
+{
+    display: inline-block;
+    height: 100%;
+    vertical-align: middle;
+}
+
+.parent-image > img
+{
+    vertical-align: middle!important;
+}
+
+.rotate {
+  animation: rotation 2s infinite linear;
+  opacity: 0.8;
+}
+
+@keyframes rotation {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(359deg);
+  }
 }

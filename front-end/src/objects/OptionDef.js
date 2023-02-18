@@ -1,10 +1,9 @@
-import { getOraclePrice, getTokenInfo } from '../ergo-related/explorer';
+import { boxByIdv1, getTokenInfo } from '../ergo-related/explorer';
 import { decodeHex, decodeHexArray, decodeLongArray, decodeString, ergoTreeToAddress } from '../ergo-related/serializer';
 import { getRegisterValue } from '../ergo-related/wasm';
 import { TX_FEE } from '../utils/constants';
-import { UNDERLYING_TOKENS } from '../utils/script_constants';
+import { OPTION_SCRIPT_ADDRESS, UNDERLYING_TOKENS } from '../utils/script_constants';
 let ergolib = import('ergo-lib-wasm-browser');
-/* global BigInt */
 
 
 export class OptionDef {
@@ -25,14 +24,22 @@ export class OptionDef {
         this.issuerAddress = '';
         this.address = '';
         this.txFee = TX_FEE;
-        this.currentOraclePrice = undefined;
+        this.isExpired = false;
+        this.isExercible = false;
+        this.isCompoundOption = false;
+        this.underlyingOptionDef = undefined;
     }
 
     async initialize() {
-        //console.log("initialize", this)
+        console.log("initialize", this)
         this.optionName = await decodeString(getRegisterValue(this.full, "R4"));
         this.underlyingTokenId = await decodeHex(getRegisterValue(this.full, "R5"));
         this.underlyingTokenInfo = await getTokenInfo(this.underlyingTokenId);
+        const underlyingTokenIssuingBox = await boxByIdv1(this.underlyingTokenId);
+        if (underlyingTokenIssuingBox.address === OPTION_SCRIPT_ADDRESS) {
+            this.isCompoundOption = true;
+            this.underlyingOptionDef = await OptionDef.create(underlyingTokenIssuingBox);
+        }
         const R9 = await decodeHexArray(getRegisterValue(this.full, "R9"));
         this.issuerErgotree = R9[0];
         this.issuerAddress = (await ergolib).Address.p2pk_from_pk_bytes(Buffer.from(this.issuerErgotree, 'hex')).to_base58();
@@ -47,12 +54,36 @@ export class OptionDef {
         this.dAppUIMintFee = optionParams[5];
         this.txFee = optionParams[6];
         this.address = await ergoTreeToAddress(this.full.ergoTree);
+
+        const now = new Date().valueOf();
+        const maturityDate = this.maturityDate;
+        console.log("isExpired", now, maturityDate)
+        if (now > maturityDate) {
+            this.isExpired = true;
+        }
+        if (this.optionStyle === 0) { // European
+            // Exercible 24h after
+            if (now > maturityDate && now < maturityDate + 24 * 3600 * 1000) {
+                this.isExercible = true;
+            }
+
+        } else { // American
+            this.isExercible = !this.isExpired
+        }
+        console.log("initialize", this)
+    }
+
+    getIntrinsicPrice(oraclePrice) {
         const underlyingToken = UNDERLYING_TOKENS.find(t => t.tokenId === this.underlyingTokenId);
         if (underlyingToken) {
-            const oracleNFTID = underlyingToken.oracleNFTID;
-            this.currentOraclePrice = await getOraclePrice(oracleNFTID);
+            console.log("getIntrinsicPrice", oraclePrice, this.strikePrice, this.shareSize)
+            if (this.optionType === 0) { // Call
+                return Math.max(0, (oraclePrice - this.strikePrice * Math.pow(10, underlyingToken.decimals)) * this.shareSize);
+            } else {
+                return Math.max(0, (this.strikePrice * Math.pow(10, underlyingToken.decimals) - oraclePrice) * this.shareSize);
+            }
         }
-        //console.log("initialize", this)
+
     }
 
     static async create(boxJSON) {

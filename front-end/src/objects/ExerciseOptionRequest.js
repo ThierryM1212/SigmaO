@@ -3,14 +3,12 @@ import { sigmaPropToAddress } from '../ergo-related/serializer';
 import { getRegisterValue } from '../ergo-related/wasm';
 import { OptionDef } from './OptionDef';
 
-/* global BigInt */
-
 
 export class ExerciseOptionRequest {
     constructor(boxJSON) {
         this.full = boxJSON;
         this.exerciseAddress = '';
-        this.optionTokenID = '';
+        this.optionTokenId = '';
         this.optionAmount = '0';
         this.value = '0';
         this.optionDef = undefined;
@@ -18,9 +16,9 @@ export class ExerciseOptionRequest {
 
     async initialize() {
         this.exerciseAddress = await sigmaPropToAddress(getRegisterValue(this.full, "R4"));
-        this.optionTokenID = this.full.assets[0].tokenId ?? '';
-        if (this.optionTokenID !== '') {
-            const optionIssuerBox = await boxById(this.optionTokenID);
+        this.optionTokenId = this.full.assets[0].tokenId ?? '';
+        if (this.optionTokenId !== '') {
+            const optionIssuerBox = await boxById(this.optionTokenId);
             this.optionDef = await OptionDef.create(optionIssuerBox);
         }
         if (this.full.assets.length > 0) {

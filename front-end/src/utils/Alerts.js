@@ -69,11 +69,17 @@ export function displayErgoPayTransaction(txId, reducedTx) {
     return MySwal;
 }
 
-export function promptOptionAmount(title) {
+export function promptOptionAmount(title, max) {
     return new Promise(function (resolve, reject) {
+        var html = "<div>"
+        html = html + '<input type="text" id="optionAmount" class="swal2-input" placeholder="Token amount" autocomplete="off">'
+        if (max) {
+            html = html + `<button class="btn-blue" onClick="document.getElementById('optionAmount').value= ${max};" >max (${max})</button>`;
+        }
+        html = html + "<div>";
         Swal.fire({
             title: title,
-            html: `<div><input type="text" id="optionAmount" class="swal2-input" placeholder="Option amount" autocomplete="off"></div>`,
+            html: html,
             focusConfirm: false,
             showCancelButton: true,
             preConfirm: () => {

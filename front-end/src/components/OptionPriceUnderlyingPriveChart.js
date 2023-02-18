@@ -74,14 +74,14 @@ function getIntegerRange(start, stop, numPoints) {
 export function OptionPriceUnderlyingPriveChart(props) {
     var date = props.pricingDate;
     const labels = getIntegerRange(parseInt(props.oraclePrice / 4), props.oraclePrice * 4, 50);
-    const optionTypeNum = OPTION_TYPES.find(o => o.label === props.optionType).id;
-    const optionStyleNum = OPTION_STYLES.find(o => o.label === props.optionStyle).id;
+    const optionTypeNum = OPTION_TYPES.find(o => o.label === props.optionType)?.id ?? props.optionType;
+    const optionStyleNum = OPTION_STYLES.find(o => o.label === props.optionStyle)?.id ?? props.optionStyle;
     //console.log("labels", labels)
     const data = {
         labels,
         datasets: [
             {
-                label: 'Option price BS at ' + date.toDateString(),
+                label: 'Option price Black-Schole at ' + date.toDateString(),
                 data: labels.map(underlyingPrice => parseInt(getOptionPriceBS(optionTypeNum, date, props.maturityDate, underlyingPrice, props.strikePrice,
                     props.shareSize, props.sigma))),
                 borderColor: 'rgb(0, 99, 132)',
@@ -89,7 +89,7 @@ export function OptionPriceUnderlyingPriveChart(props) {
                 yAxisID: 'y',
             },
             {
-                label: 'Option price New at ' + date.toDateString(),
+                label: 'Option price SigmaO at ' + date.toDateString(),
                 data: labels.map(underlyingPrice => parseInt(getOptionPrice(optionTypeNum, optionStyleNum, date, props.maturityDate, underlyingPrice, props.strikePrice,
                     props.shareSize, props.sigma, props.K1, props.K2))),
                 borderColor: 'rgb(0, 99, 0)',
