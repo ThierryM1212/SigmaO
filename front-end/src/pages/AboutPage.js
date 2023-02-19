@@ -26,6 +26,15 @@ function HomePage(props) {
                 <h6>Any user or contract can fullfill the buy or sell requirements by delivering the right amount of ERG or tokens to the issuer.</h6>
             </div>
             <div className="w-75 zonemint m-2 p-2 d-flex flex-column align-items-start">
+                <h5>Information on options</h5>
+                <a href="https://www.investopedia.com/terms/o/option.asp" target="_blank">Investopedia - What Is an Option?</a>
+                <a href="https://en.wikipedia.org/wiki/Option_(finance)" target="_blank">Wikipedia - Option (Finance)</a>
+                <a href="https://www.codearmo.com/python-tutorial/options-trading-options-pricing-introduction" target="_blank">CodeArmor - Option pricing introduction</a>
+                <a href="http://www.espenhaug.com/black_scholes.html" target="_blank">Black-Scholes implementations</a>
+                <a href="https://www.amazon.com/Options-Futures-Other-Derivatives-Global/dp/1292410655/" target="_blank">Options Futures and Other derivatives by John Hull</a>
+                <a href="https://www.amazon.com/Intelligent-Option-Investor-Applying-Investing/dp/007183365X" target="_blank">Intelligent Option Investor by Erik Kobayashi-Solomon</a>
+            </div>
+            <div className="w-75 zonemint m-2 p-2 d-flex flex-column align-items-start">
                 <h5>Know your assumptions.</h5>
                 <h6>SigmaO is an open source application interacting with smart contracts on the Ergo blockchain.</h6>
                 <h6>The application does not log or collect the user data.</h6>
