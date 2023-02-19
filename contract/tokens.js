@@ -8,14 +8,6 @@ const TOKENS = [
         icon: "sigusd.svg",
     },
     {
-        name: "fakeUSD",
-        tokenId: "777777e5051f8a6bc30827ee41dd39e04bca1dba35236b9a26b494e0bac84f33",
-        decimals: 2,
-        oracleTokenId: "6666668ce353fefd146d14b41482d526ebf26a5a7d204f36570c59c558136b83",
-        oracleType: "Oracle",
-        icon: "sigusd.svg",
-    },
-    {
         name: "SigRSV",
         tokenId: "003bd19d0187117f130b62e1bcab0939929ff5c7709f843c5c4dd158949285d0",
         decimals: 0,

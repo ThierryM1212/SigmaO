@@ -1,3 +1,5 @@
+import AddressLink from "../components/AddressLink";
+import { BUY_TOKEN_REQUEST_SCRIPT_ADDRESS, EXERCISE_OPTION_REQUEST_SCRIPT_ADDRESS, OPTION_SCRIPT_ADDRESS, SELL_FIXED_SCRIPT_ADDRESS, UNDERLYING_TOKENS } from "../utils/script_constants";
 
 function HomePage(props) {
     return (
@@ -29,10 +31,38 @@ function HomePage(props) {
                 <h5>Information on options</h5>
                 <a href="https://www.investopedia.com/terms/o/option.asp" target="_blank">Investopedia - What Is an Option?</a>
                 <a href="https://en.wikipedia.org/wiki/Option_(finance)" target="_blank">Wikipedia - Option (Finance)</a>
+                <a href="https://www.investopedia.com/terms/c/compoundoption.asp" target="_blank">Investopedia - Compound option</a>
                 <a href="https://www.codearmo.com/python-tutorial/options-trading-options-pricing-introduction" target="_blank">CodeArmor - Option pricing introduction</a>
                 <a href="http://www.espenhaug.com/black_scholes.html" target="_blank">Black-Scholes implementations</a>
                 <a href="https://www.amazon.com/Options-Futures-Other-Derivatives-Global/dp/1292410655/" target="_blank">Options Futures and Other derivatives by John Hull</a>
                 <a href="https://www.amazon.com/Intelligent-Option-Investor-Applying-Investing/dp/007183365X" target="_blank">Intelligent Option Investor by Erik Kobayashi-Solomon</a>
+            </div>
+            <div className="w-75 zonemint m-2 p-2 d-flex flex-column align-items-start">
+                <h5>SigmaO contracts</h5>
+                <div className="w-100 d-flex flex-row justify-content-between">
+                    <div>Option</div>
+                    <AddressLink address={OPTION_SCRIPT_ADDRESS} length={20} />
+                </div>
+                <div className="w-100 d-flex flex-row justify-content-between">
+                    <div>Exercise Option Request</div>
+                    <AddressLink address={EXERCISE_OPTION_REQUEST_SCRIPT_ADDRESS} length={20} />
+                </div>
+                <div className="w-100 d-flex flex-row justify-content-between">
+                    <div>Open buy order</div>
+                    <AddressLink address={BUY_TOKEN_REQUEST_SCRIPT_ADDRESS} length={20} />
+                </div>
+                <div className="w-100 d-flex flex-row justify-content-between">
+                    <div>Open sell order</div>
+                    <AddressLink address={SELL_FIXED_SCRIPT_ADDRESS} length={20} />
+                </div>
+                {
+                    UNDERLYING_TOKENS.map(t =>
+                        <div className="w-100 d-flex flex-row justify-content-between" key={t.tokenId}>
+                            <div>Sell option {t.label}</div>
+                            <AddressLink address={t.sellOptionScriptAddress} length={20} />
+                        </div>
+                    )
+                }
             </div>
             <div className="w-75 zonemint m-2 p-2 d-flex flex-column align-items-start">
                 <h5>Know your assumptions.</h5>
@@ -44,7 +74,7 @@ function HomePage(props) {
                     <a href="https://github.com/ThierryM1212/sigmao" target="_blank" rel="noreferrer">https://github.com/ThierryM1212/sigmao</a>.</h6>
                 <h6>The application is in beta version, done in the context of Ergohack VI, it is recommended to use it for only small transactions.</h6>
                 <h6>The application is permissionless, the developper don't have more grants than you to interact with the smart contracts.</h6>
-                
+
             </div>
 
         </div>

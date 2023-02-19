@@ -238,7 +238,7 @@ export default class SellOptionPage extends React.Component {
                                                             <div>{
                                                                 formatERGAmount(getOptionPrice(currentOption.optionDef.optionType, currentOption.optionDef.optionStyle, new Date(),
                                                                     new Date(currentOption.optionDef.maturityDate),
-                                                                    this.state.oraclePrice, currentOption.optionDef.strikePrice * Math.pow(10, currentToken.decimals), currentOption.optionDef.shareSize,
+                                                                    this.state.oraclePrice, currentOption.optionDef.strikePrice * Math.pow(10, currentToken.decimals), currentOption.optionDef.shareSize ,
                                                                     this.state.sigma, this.state.K1, this.state.K2))
                                                             }</div>
                                                             : null

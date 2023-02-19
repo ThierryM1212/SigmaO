@@ -1,9 +1,11 @@
 {   
     // Request to exercise the option
-    // Number of option token provided: N
+    // Number of option token provided: N (SELF.tokens(0))
     // Exercise Call Value >= MinBoxValue + TxFee + N * ShareSize * StrikePrice
     // Exercise Put Value >= MinBoxValue + TxFee
     // Exercise Put Tokens >= N * ShareSize Underlying tokens
+    // R4: SigmaProp: user PK to get the payment or process a refund
+    // R5: Box: Option creation box (boxId = option tokenId)
     val userPKIn: SigmaProp = SELF.R4[SigmaProp].get
     val selfToken0: (Coll[Byte], Long) = SELF.tokens.getOrElse(0,(Coll[Byte](),0L))
     val selfToken1: (Coll[Byte], Long) = SELF.tokens.getOrElse(1,(Coll[Byte](),0L))

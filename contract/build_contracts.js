@@ -100,3 +100,4 @@ const scriptConstantTemplate = fs.readFileSync('./templates/script_constants.js.
 const optionSellContract = Mustache.render(scriptConstantTemplate, scriptConstants);
 fs.writeFileSync(buildBaseDir + 'script_constants.js', optionSellContract);
 
+console.log(buildBaseDir + 'script_constants.js', "Successully generated")
