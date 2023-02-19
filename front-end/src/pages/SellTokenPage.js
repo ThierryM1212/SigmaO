@@ -36,8 +36,8 @@ export default class SellTokenPage extends React.Component {
     setTokenPrice = (s) => { this.setState({ tokenPrice: s.replace(/[^0-9]/g, "") }); };
     setTokenId = (s) => { this.setState({ tokenId: s }); };
 
-    async mintSellOption() {
-        console.log("mintSellOption", this.state.tokenId,
+    async mintSellToken() {
+        console.log("mintSellToken", this.state.tokenId,
             this.state.tokenAmount, this.state.tokenPrice)
         const txId = await createTokenSellRequest(this.state.tokenId,
             this.state.tokenAmount, this.state.tokenPrice);
@@ -196,7 +196,7 @@ export default class SellTokenPage extends React.Component {
                     </div>
                     <div className='d-flex flex-row justify-content-center align-items-center'>
                         <button className='btn btn-blue'
-                            onClick={() => this.mintSellOption()}
+                            onClick={() => this.mintSellToken()}
                         >
                             Sell Tokens
                         </button>

@@ -4,7 +4,7 @@ import Footer from './components/Footer';
 import MintTabs from './components/MintTabs';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import NavigationBar from './components/NavigationBar';
-import HomePage from './pages/HomePage';
+import AboutPage from './pages/AboutPage';
 import ExerciseOptionsPage from './pages/ExerciseOptionsPage';
 import BuyOptionsPage from './pages/BuyOptionsPage';
 import MintOptionPage from './pages/MintOptionPage';
@@ -13,6 +13,7 @@ import OptionDetailWrapper from './components/OptionDetailWrapper';
 import UserDashboard from './pages/UserDashboard';
 import SellTokenPage from './pages/SellTokenPage';
 import BuyTokensPage from './pages/BuyTokensPage';
+import TokenMarketPage from './pages/TokenMarketPage';
 //import MatrixBackground from './components/MatrixBackground';
 
 export default class App extends React.Component {
@@ -25,7 +26,8 @@ export default class App extends React.Component {
           <NavigationBar />
           <div className='page-container'>
             <Routes>
-              <Route path={"/"} element={<HomePage />} />
+              <Route path={"/"} element={<TokenMarketPage />} />
+              <Route path={"/about"} element={<AboutPage />} />
               <Route path={"/dashboard"} element={<UserDashboard />} />
               <Route path={"/mint-options"} element={<MintOptionPage />} />
               <Route path={"/exercise-options"} element={<ExerciseOptionsPage />} />

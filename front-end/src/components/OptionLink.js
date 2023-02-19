@@ -2,6 +2,7 @@ import ReactTooltip from "react-tooltip";
 import openIcon from "../images/open_in_new_white_24dp.svg";
 import verifiedIcon from "../images/verified_white_24dp.svg";
 import { DEFAULT_EXPLORER_ADDRESS } from "../utils/constants";
+import { formatLongString } from "../utils/utils";
 import OptionCard from "./OptionCard";
 
 
@@ -27,7 +28,7 @@ export default function OptionLink(props) {
                 target="_blank" rel="noreferrer"
                 data-tip
                 data-for={props.optionDef.optionTokenId} >
-                {props.optionDef.optionName}
+                {formatLongString(props.optionDef.optionName, 15) }
             </a>
             &nbsp;
 

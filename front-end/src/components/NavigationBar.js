@@ -38,10 +38,12 @@ function NavigationBar(props) {
                             title="Tokens"
                             menuVariant="dark"
                         >
+
                             <NavDropdown.Item href="/buy-tokens">Buy</NavDropdown.Item>
                             <NavDropdown.Item href="/sell-tokens">Sell</NavDropdown.Item>
                         </NavDropdown>
                     </h5>
+                    <Nav.Link href="/about"><h5>About</h5></Nav.Link>
                 </Nav>
             </Navbar.Collapse>
             {

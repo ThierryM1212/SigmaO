@@ -444,10 +444,10 @@ export async function processBuyRequest(buyRequest) {
         const sellTokenRequests = await Promise.all(
             sellTokenBoxes.map(async b => SellTokenRequest.create(b))
         );
-        //console.log("sellTokenRequests", sellTokenRequests)
+        console.log("sellTokenRequests", sellTokenRequests)
         const validSellTokenRequests = sellTokenRequests.filter(str => str.tokenAmount >= tokenBuyAmount &&
             str.tokenPrice * str.tokenAmount >= buyRequest.full.value - TX_FEE - MIN_NANOERG_BOX_VALUE);
-        //console.log("validSellTokenRequests", validSellTokenRequests)
+        console.log("validSellTokenRequests", validSellTokenRequests)
         if (validSellTokenRequests.length > 0) {
 
             const utxos = [validSellTokenRequests[0].full, buyRequest.full];

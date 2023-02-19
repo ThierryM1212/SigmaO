@@ -31,7 +31,7 @@ export class OptionDef {
     }
 
     async initialize() {
-        console.log("initialize", this)
+        //console.log("initialize", this)
         this.optionName = await decodeString(getRegisterValue(this.full, "R4"));
         this.underlyingTokenId = await decodeHex(getRegisterValue(this.full, "R5"));
         this.underlyingTokenInfo = await getTokenInfo(this.underlyingTokenId);
@@ -57,7 +57,7 @@ export class OptionDef {
 
         const now = new Date().valueOf();
         const maturityDate = this.maturityDate;
-        console.log("isExpired", now, maturityDate)
+        //console.log("isExpired", now, maturityDate)
         if (now > maturityDate) {
             this.isExpired = true;
         }
@@ -70,7 +70,7 @@ export class OptionDef {
         } else { // American
             this.isExercible = !this.isExpired
         }
-        console.log("initialize", this)
+        //console.log("initialize", this)
     }
 
     getIntrinsicPrice(oraclePrice) {
