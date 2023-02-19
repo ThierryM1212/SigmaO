@@ -15,8 +15,7 @@ export default function OptionList(props) {
                         <div key={option.optionDef.optionTokenId} className='m-1 p-1'>
                             <OptionCard option={option}
                                 oraclePrice={underlyingTokenPrices.find(t => t.tokenId === option.optionDef.underlyingTokenId)?.price}
-                                showExercise={option.optionDef.isExercible 
-                                    && walletTokens.findIndex(t => t.tokenId === option.optionDef.optionTokenId) >= 0}
+                                showExercise={true}
                                 walletOptionAmount={walletTokens.find(t => t.tokenId === option.optionDef.optionTokenId)?.amount ?? 0}
 />
                         </div>

@@ -1,8 +1,12 @@
-import { Navbar, Nav } from 'react-bootstrap';
+import { Navbar, Nav, Dropdown, NavDropdown } from 'react-bootstrap';
 import Logo from "../images/sigmaOLogo_24dp.svg";
+import DashboardIcon from "../images/dashboard_white_24dp.svg";
 import InputAddress from './InputAddress';
+import HelpToolTip from './HelpToolTip';
+import './drop-down-dark.css';
 
 function NavigationBar(props) {
+    const address = localStorage.getItem('address') ?? '';
     return (
         <Navbar expand="lg" variant="dark" className="sticky-top w-100 color-nav">
             <Navbar.Brand href="/">
@@ -13,15 +17,41 @@ function NavigationBar(props) {
             <Navbar.Collapse id="basic-navbar-nav">
                 <Nav className="mr-auto align-items-center">
                     <Nav.Link href={"/"}><h2>Sigma'O</h2></Nav.Link>
-                    <Nav.Link href={"/dashboard"}><h5>Dashboard</h5></Nav.Link>
-                    <Nav.Link href={"/mint-options"}><h5>Create options</h5></Nav.Link>
-                    <Nav.Link href={"/exercise-options"}><h5>Exercise options</h5></Nav.Link>
-                    <Nav.Link href={"/buy-options"}><h5>Buy options</h5></Nav.Link>
-                    <Nav.Link href={"/sell-options"}><h5>Sell options</h5></Nav.Link>
-                    <Nav.Link href={"/buy-tokens"}><h5>Buy tokens</h5></Nav.Link>
-                    <Nav.Link href={"/sell-tokens"}><h5>Sell tokens</h5></Nav.Link>
+                    &nbsp;
+                    <h5>
+                        <NavDropdown
+                            id="nav-dropdown-dark-example"
+                            title="Options"
+                            menuVariant="dark"
+                            className='dropdown-menu-dark'
+                        >
+                            <NavDropdown.Item href="/mint-options">Create</NavDropdown.Item>
+                            <NavDropdown.Item href="/exercise-options">Exercise</NavDropdown.Item>
+                            <NavDropdown.Item href="/buy-options">Buy</NavDropdown.Item>
+                            <NavDropdown.Item href="/sell-options">Sell</NavDropdown.Item>
+                        </NavDropdown>
+                    </h5>
+                    &nbsp;
+                    <h5>
+                        <NavDropdown
+                            id="nav-dropdown-dark-example"
+                            title="Tokens"
+                            menuVariant="dark"
+                        >
+                            <NavDropdown.Item href="/buy-tokens">Buy</NavDropdown.Item>
+                            <NavDropdown.Item href="/sell-tokens">Sell</NavDropdown.Item>
+                        </NavDropdown>
+                    </h5>
                 </Nav>
             </Navbar.Collapse>
+            {
+                address !== '' ?
+                    <Nav.Link href={"/dashboard"}>
+                        <HelpToolTip id="dashboard" image={DashboardIcon} html="My dashboard" width={32} />
+                    </Nav.Link>
+                    : null
+            }
+
             <InputAddress />
         </Navbar>
     );

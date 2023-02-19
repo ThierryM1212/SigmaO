@@ -3,13 +3,17 @@ import ReactTooltip from "react-tooltip";
 
 
 export default function HelpToolTip(props) {
+    var width = 24;
+    if(props.width) {
+        width = props.width;
+    }
     return (
         <Fragment>
             <div>
                 <img
                     src={props.image}
                     alt={"help tooltip"}
-                    width="24px"
+                    width={width}
                     data-tip
                     data-for={props.id}
                 />

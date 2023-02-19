@@ -77,8 +77,8 @@ export default function OptionCard(props) {
 
                                                 :
                                                 <small >
-                                                    <TokenLink tokenId={optionDef.underlyingTokenInfo.id} 
-                                                    name={optionDef.underlyingTokenInfo.name} />
+                                                    <TokenLink tokenId={optionDef.underlyingTokenInfo.id}
+                                                        name={optionDef.underlyingTokenInfo.name} />
                                                 </small>
                                         }
                                     </div>
@@ -161,12 +161,17 @@ export default function OptionCard(props) {
                                 props.showExercise ?
                                     <div className='w-100 d-flex flex-row align-items-center justify-content-center m-2 p-2'>
                                         <button className='btn btn-blue'
-                                            disabled={!option.optionDef.isExercible}
+                                            disabled={walletOptionAmount <= 0}
                                             onClick={() => exerciseOption(optionDef.optionTokenId, walletOptionAmount)}
                                         >
                                             Exercise
                                         </button>
-                                        <small>({walletOptionAmount} available)</small>
+                                        {
+                                            walletOptionAmount > 0 ?
+                                                <small>({walletOptionAmount} available)</small>
+                                                : null
+                                        }
+
                                     </div>
                                     : null
                             }
