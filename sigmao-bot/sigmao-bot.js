@@ -10,6 +10,7 @@ import { SellOptionRequest } from './src/objects/SellOptionRequest.js';
 import { BuyTokenRequest } from './src/objects/BuyTokenRequest.js';
 import { SellTokenRequest } from './src/objects/SellTokenRequest.js';
 
+console.log("STARTING SigmaO bot");
 
 async function processOptions() {
     try {

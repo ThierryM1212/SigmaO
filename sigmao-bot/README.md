@@ -11,5 +11,4 @@
 
 ## Run with pm2
 
-    - pm2 start sigmao-bot.pm2.cjs
-    
+    - pm2 start sigmao-bot.js --max_memory_restart 300M
