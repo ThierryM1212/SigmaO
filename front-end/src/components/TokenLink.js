@@ -7,7 +7,7 @@ import { UNDERLYING_TOKENS } from "../utils/script_constants";
 export default function TokenLink(props) {
     const URL = DEFAULT_EXPLORER_ADDRESS + 'en/token/' + props.tokenId;
     return (
-        <div className="d-flex flew-row">
+        <div className="d-flex flew-row m-1">
             <div>{props.name}</div>
             &nbsp;
             {
