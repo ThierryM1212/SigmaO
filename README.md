@@ -5,7 +5,7 @@
 - The contract is permission less and fully hedged
 - A configurable fee for the UI provider is available
 
-![Sigma'O global diagram](./contract/Option_global.drawio.png)
+![Sigma'O global diagram](./contract/images/Option_global.drawio.png)
 
 ## Option Contract
 ### Option Emission parameters
