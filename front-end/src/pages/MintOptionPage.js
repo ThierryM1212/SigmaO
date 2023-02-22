@@ -5,14 +5,18 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { errorAlert } from '../utils/Alerts';
 import { createOptionRequest } from "../actions/userOptionActions";
-import { getBalanceForAddress, getOraclePrice, getTokenInfo } from '../ergo-related/explorer';
+import { boxByIdv1, getBalanceForAddress, getOraclePrice, getTokenInfo } from '../ergo-related/explorer';
 import { formatERGAmount } from '../utils/utils';
-import { UNDERLYING_TOKENS } from '../utils/script_constants';
+import { OPTION_SCRIPT_ADDRESS, UNDERLYING_TOKENS } from '../utils/script_constants';
 import { Table } from 'react-bootstrap';
 import expandLessIcon from '../images/expand_less_white_24dp.svg';
 import expandMoreIcon from '../images/expand_more_white_24dp.svg';
+import helpIcon from '../images/help_outline_blue_48dp.png';
 import PriceCharts from '../components/PriceCharts';
 import TokenLink from '../components/TokenLink';
+import HelpToolTip from '../components/HelpToolTip';
+import { OptionDef } from '../objects/OptionDef';
+import OptionLink from '../components/OptionLink';
 
 
 const optionsTypes = OPTION_TYPES.map(opt_type => { return { value: opt_type.label, label: opt_type.label } });
@@ -37,6 +41,7 @@ export default class MintOptionPage extends React.Component {
             optionStyle: optionsStyles[1].label,
             underlyingTokenId: '',
             underlyingTokenInfo: undefined,
+            underlyingOptionDef: undefined,
             optionAmount: 10,
             shareSize: 1, // token per option, to be multiplied by decimal factor in contract
             strikePrice: 1000000, // nanoerg per token, to be adjusted by decimal factor in contract
@@ -79,9 +84,14 @@ export default class MintOptionPage extends React.Component {
             console.log("setUnderlyingToken underlyingToken", underlyingToken);
             const oraclePrice = await getOraclePrice(underlyingToken.oracleNFTID);
             console.log("setUnderlyingToken oraclePrice", oraclePrice);
-            this.setState({ underlyingTokenId: filteredTokenId, strikePrice: oraclePrice, oraclePrice: oraclePrice, underlyingTokenInfo: underlyingTokenInfo });
+            this.setState({ underlyingTokenId: filteredTokenId, strikePrice: oraclePrice, oraclePrice: oraclePrice, underlyingTokenInfo: underlyingTokenInfo, underlyingOptionDef: undefined });
         } else {
-            this.setState({ underlyingTokenId: filteredTokenId, oraclePrice: undefined, showPriceSimulation: false, underlyingTokenInfo: underlyingTokenInfo });
+            const tokenIssuerBox = await boxByIdv1(tokenId);
+            var optionDef = undefined;
+            if (tokenIssuerBox.address === OPTION_SCRIPT_ADDRESS) {
+                optionDef = await OptionDef.create(tokenIssuerBox);
+            }
+            this.setState({ underlyingTokenId: filteredTokenId, oraclePrice: undefined, showPriceSimulation: false, underlyingTokenInfo: underlyingTokenInfo, underlyingOptionDef: optionDef });
         }
     };
     setOptionAmount = (amount) => { this.setState({ optionAmount: amount.replace(/[^0-9]/g, "") }); };
@@ -133,6 +143,14 @@ export default class MintOptionPage extends React.Component {
         return (
             <Fragment >
                 <div className="card zonemint p-1 m-2">
+
+                    <div className='d-flex flex-row'>
+                        <h4>Create an option</h4>
+                        <HelpToolTip image={helpIcon} id='Create an option help' html={
+                            <div>Create EIP-4 tokens, delivered to your wallet, that have the value of an option to buy (Call) or sell (Put) the underlying EIP-4 token.</div>
+                        } />
+                    </div>
+
                     <div className='card zonemint d-flex flex-column m-1 p-1'>
                         <Table >
                             <tbody>
@@ -197,9 +215,15 @@ export default class MintOptionPage extends React.Component {
                                     <td>
                                         {
                                             currentToken ?
-                                                <div className='d-flex flex-row'>
+                                                <div className='d-flex flex-row align-items-center'>
                                                     <small>Available {(currentToken.amount / Math.pow(10, currentToken.decimals)).toFixed(currentToken.decimals)}</small>
-                                                    <TokenLink tokenId={currentToken.tokenId} />
+                                                    {
+                                                        this.state.underlyingOptionDef ?
+                                                            <OptionLink optionDef={this.state.underlyingOptionDef} />
+                                                        :
+                                                            <TokenLink tokenId={currentToken.tokenId} />
+                                                    }
+
                                                 </div>
                                                 :
                                                 this.state.underlyingTokenInfo ?
@@ -236,7 +260,14 @@ export default class MintOptionPage extends React.Component {
                                     <td><small>Number of token(s) per option</small></td>
                                 </tr>
                                 <tr>
-                                    <td>Strike price</td>
+                                    <td>
+                                        <div className='d-flex flex-row'>
+                                            <div>Strike price</div>
+                                            <HelpToolTip image={helpIcon} id='strike price help' html={
+                                                <div>Strike price in nanoERG</div>
+                                            } />
+                                        </div>
+                                    </td>
                                     <td>
                                         <input type="text"
                                             id="strikePrice"
@@ -245,9 +276,10 @@ export default class MintOptionPage extends React.Component {
                                             value={this.state.strikePrice}
                                             autoComplete="off"
                                         />
+
                                     </td>
                                     <td><small>nanoERG per token</small>
-                                        ({formatERGAmount(Math.floor(this.state.strikePrice / Math.pow(10, this.state.underlyingTokenInfo?.decimals)) * Math.pow(10, this.state.underlyingTokenInfo?.decimals), strikePricePrecision)})</td>
+                                        &nbsp;({formatERGAmount(Math.floor(this.state.strikePrice / Math.pow(10, this.state.underlyingTokenInfo?.decimals)) * Math.pow(10, this.state.underlyingTokenInfo?.decimals), strikePricePrecision)})</td>
                                 </tr>
                                 <tr>
                                     <td>Maturity date</td>
@@ -329,7 +361,7 @@ export default class MintOptionPage extends React.Component {
                         <button className='btn btn-blue'
                             onClick={() => this.mintOption()}
                         >
-                            Mint Option
+                            Mint {this.state.underlyingOptionDef ? "compound" : null} option
                         </button>
                     </div>
                 </div>

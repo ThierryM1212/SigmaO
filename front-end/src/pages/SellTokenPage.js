@@ -11,7 +11,12 @@ import { createTokenSellRequest } from '../actions/BuyRequestActions';
 import ExternalSales from '../components/ExternalSales';
 import { BuyTokenRequest } from '../objects/BuyTokenRequest';
 import BuyTokenList from '../components/BuyTokenList';
-import { BUY_TOKEN_REQUEST_SCRIPT_ADDRESS } from '../utils/script_constants';
+import { BUY_TOKEN_REQUEST_SCRIPT_ADDRESS, UNDERLYING_TOKENS } from '../utils/script_constants';
+import HelpToolTip from '../components/HelpToolTip';
+import helpIcon from '../images/help_outline_blue_48dp.png';
+import { getWalletOptions } from '../utils/option_utils';
+import OptionLink from '../components/OptionLink';
+import TokenLink from '../components/TokenLink';
 
 
 export default class SellTokenPage extends React.Component {
@@ -23,6 +28,7 @@ export default class SellTokenPage extends React.Component {
             tokenPrice: 0,
             oraclePrice: undefined,
             walletTokens: [],
+            walletOptions: [],
             AMMPrices: [],
             buyTokenRequests: undefined,
         };
@@ -58,11 +64,12 @@ export default class SellTokenPage extends React.Component {
         const address = localStorage.getItem('address') ?? '';
         if (address !== '') {
             const walletTokens = await getTokensForAddress(address);
-            //console.log("walletOptionDefs", walletOptionDefs)
             if (walletTokens.length > 0) {
                 this.setTokenId(walletTokens[0].tokenId);
             }
-            this.setState({ walletTokens: walletTokens })
+            var walletOptions = await getWalletOptions(address);
+
+            this.setState({ walletOptions: walletOptions, walletTokens: walletTokens })
         } else {
             errorAlert("ERG address not set")
             return;
@@ -75,6 +82,7 @@ export default class SellTokenPage extends React.Component {
         const currentToken = this.state.walletTokens.find(o => o.tokenId === this.state.tokenId);
         const currentTokenPrice = this.state.AMMPrices.find(t => t.tokenId === this.state.tokenId)?.price ?? 0;
         const currentTokenDecimalFactor = Math.pow(10, currentToken?.decimals) ?? 1;
+        const currentOption = this.state.walletOptions.find(o => o.optionDef.optionTokenId === this.state.tokenId);
         return (
             <div className="w-100 m-1 p-1">
                 <div className="card zonemint p-1 m-2">
@@ -96,14 +104,29 @@ export default class SellTokenPage extends React.Component {
                                     <td>
                                         {
                                             currentToken ?
-                                                <div>(Available {(currentToken.amount / currentTokenDecimalFactor).toFixed(currentToken.decimals)})</div>
+                                                <div className='d-flex flex-row align-items-center'>
+                                                    <div>(Available {(currentToken.amount / currentTokenDecimalFactor).toFixed(currentToken.decimals)})</div>
+                                                    {
+                                                        currentOption ?
+                                                            <OptionLink optionDef={currentOption.optionDef} />
+                                                            :
+                                                            <TokenLink tokenId={this.state.tokenId} />
+                                                    }
+                                                </div>
                                                 :
                                                 null
                                         }
                                     </td>
                                 </tr>
                                 <tr>
-                                    <td>Sell amount</td>
+                                    <td>
+                                        <div className='d-flex flex-row'>
+                                            <div>Sell amount</div>
+                                            <HelpToolTip image={helpIcon} id='Sell amount help' html={
+                                                <div>Number of token to sell</div>
+                                            } />
+                                        </div>
+                                    </td>
                                     <td>
                                         <input type="text"
                                             id="tokenAmount"
@@ -124,7 +147,14 @@ export default class SellTokenPage extends React.Component {
                                     </td>
                                 </tr>
                                 <tr>
-                                    <td>Price</td>
+                                    <td>
+                                        <div className='d-flex flex-row'>
+                                            <div>Price</div>
+                                            <HelpToolTip image={helpIcon} id='strike price help' html={
+                                                <div>Token price in nanoERG</div>
+                                            } />
+                                        </div>
+                                    </td>
                                     <td>
                                         <div className='w-100'>
                                             <input type="text"
@@ -206,7 +236,7 @@ export default class SellTokenPage extends React.Component {
                     <BuyTokenList buyTokenRequestsList={this.state.buyTokenRequests} showTitle={true} />
                 </div>
                 <ExternalSales />
-                </div >
+            </div >
         )
     }
 }

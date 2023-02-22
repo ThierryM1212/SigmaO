@@ -1,6 +1,6 @@
 import React from 'react';
-import { getTokenInfo, getTokensForAddress, getUnspentBoxesForAddressUpdated } from '../ergo-related/explorer';
-import { SELL_FIXED_SCRIPT_ADDRESS } from '../utils/script_constants';
+import { boxByIdv1, getTokenInfo, getTokensForAddress, getUnspentBoxesForAddressUpdated } from '../ergo-related/explorer';
+import { OPTION_SCRIPT_ADDRESS, SELL_FIXED_SCRIPT_ADDRESS } from '../utils/script_constants';
 import { SellTokenRequest } from '../objects/SellTokenRequest';
 import SellTokenList from '../components/SellTokenList';
 import { getAMMPrices } from '../ergo-related/amm';
@@ -10,6 +10,11 @@ import ThemedSelect from '../components/ThemedSelect';
 import { formatERGAmount } from '../utils/utils';
 import { NANOERG_TO_ERG, TX_FEE } from '../utils/constants';
 import { createTokenBuyRequest } from '../actions/BuyRequestActions';
+import HelpToolTip from '../components/HelpToolTip';
+import helpIcon from '../images/help_outline_blue_48dp.png';
+import TokenLink from '../components/TokenLink';
+import OptionLink from '../components/OptionLink';
+import { OptionDef } from '../objects/OptionDef';
 
 
 export default class BuyTokensPage extends React.Component {
@@ -25,6 +30,7 @@ export default class BuyTokensPage extends React.Component {
             walletTokens: [],
             buyTokenRequests: undefined,
             currentToken: undefined,
+            currentOptionDef: undefined,
         };
 
         this.setTokenAmount = this.setTokenAmount.bind(this);
@@ -42,8 +48,15 @@ export default class BuyTokensPage extends React.Component {
         if (!currentToken) {
             currentToken = await getTokenInfo(tokenId);
             currentToken['amount'] = 0;
+        };
+        const issuerBox = await boxByIdv1(tokenId);
+        var currentOptionDef = undefined;
+        if (issuerBox.address === OPTION_SCRIPT_ADDRESS) {
+            currentOptionDef = await OptionDef.create(issuerBox);
+        } else {
+            currentOptionDef = undefined;
         }
-        this.setState({ currentToken: currentToken })
+        this.setState({ currentToken: currentToken, currentOptionDef: currentOptionDef })
     }
 
     async fetchSellTokenRequests() {
@@ -58,7 +71,7 @@ export default class BuyTokensPage extends React.Component {
 
     async mintBuyToken() {
         if (this.state.currentToken) {
-            console.log("mintBuyToken",this.state.tokenId,
+            console.log("mintBuyToken", this.state.tokenId,
                 this.state.tokenAmount,
                 Math.round(this.state.tokenPrice / Math.pow(10, this.state.currentToken.decimals)
                 ));
@@ -124,14 +137,32 @@ export default class BuyTokensPage extends React.Component {
                                     <td>
                                         {
                                             currentToken ?
-                                                <div>(Available {(currentToken.amount / currentTokenDecimalFactor).toFixed(currentToken.decimals)})</div>
+                                                <div className='d-flex flex-row align-items-center'>
+                                                    <div>(Available {(currentToken.amount / currentTokenDecimalFactor).toFixed(currentToken.decimals)})</div>
+                                                    {
+                                                        this.state.currentOptionDef ?
+                                                            <OptionLink optionDef={this.state.currentOptionDef} />
+                                                            :
+                                                            <TokenLink tokenId={this.state.tokenId} />
+                                                    }
+                                                </div>
                                                 :
-                                                null
+                                                this.state.currentOptionDef ?
+                                                    <OptionLink optionDef={this.state.currentOptionDef} />
+                                                    :
+                                                    <TokenLink tokenId={this.state.tokenId} />
                                         }
                                     </td>
                                 </tr>
                                 <tr>
-                                    <td>Buy amount</td>
+                                    <td>
+                                        <div className='d-flex flex-row'>
+                                            <div>Buy amount</div>
+                                            <HelpToolTip image={helpIcon} id='Buy amount help' html={
+                                                <div>Number of token to buy. The buy order needs to be completed in one transaction, no partial buy is supported.</div>
+                                            } />
+                                        </div>
+                                    </td>
                                     <td>
                                         <input type="text"
                                             id="tokenAmount"
@@ -152,7 +183,14 @@ export default class BuyTokensPage extends React.Component {
                                     </td>
                                 </tr>
                                 <tr>
-                                    <td>Price</td>
+                                    <td>
+                                        <div className='d-flex flex-row'>
+                                            <div>Price</div>
+                                            <HelpToolTip image={helpIcon} id='Buy Price help' html={
+                                                <div>NanoERG per token.</div>
+                                            } />
+                                        </div>
+                                    </td>
                                     <td>
                                         <div className='w-100'>
                                             <input type="text"

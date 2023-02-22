@@ -1,5 +1,7 @@
 {   
-    // SigmaO option contract
+    //////////////////////////////////////////////////////////
+    // SigmaO OPTION CONTRACT
+    //////////////////////////////////////////////////////////
     // Smart contract allowing to create tokens that behave like an option on other Ergo tokens
     // The option token owner is granted to buy or sell (exercise the option) one or several tokens (share size) at a given strike price
     // The option can be of type:

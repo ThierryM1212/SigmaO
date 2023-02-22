@@ -13,9 +13,16 @@ export default class TokenImage extends React.Component {
             width: this.props.width ?? 48,
             tokenImage: undefined,
         };
+        this.updateTokenImage = this.updateTokenImage.bind(this);
     }
 
-    async componentDidMount() {
+    componentDidUpdate(prevProps, prevState) {
+        if (prevProps !== this.props) {
+            this.setState({ ...this.props }, () => this.updateTokenImage());
+        }
+    }
+
+    async updateTokenImage() {
         const images = require.context('../images/asset-icons/', true);
         const underlyingToken = UNDERLYING_TOKENS.find(t => t.tokenId === this.state.tokenId);
         var tokenImage = undefined, tokenImageName = "unknown.svg";;
@@ -53,6 +60,10 @@ export default class TokenImage extends React.Component {
         }
 
         this.setState({ tokenImage: tokenImage })
+    }
+
+    async componentDidMount() {
+        await this.updateTokenImage();
     }
 
 

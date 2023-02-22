@@ -2,7 +2,6 @@ import React from 'react';
 import { boxByIdv1, getOraclePrice, getTokenInfo, getTokensForAddress, getUnspentBoxesForAddressUpdated } from '../ergo-related/explorer';
 import { SellOptionRequest } from '../objects/SellOptionRequest';
 import { BUY_TOKEN_REQUEST_SCRIPT_ADDRESS, OPTION_SCRIPT_ADDRESS, SELL_FIXED_SCRIPT_ADDRESS, UNDERLYING_TOKENS } from '../utils/script_constants';
-import SellOptionList from '../components/SellOptionList';
 import { SellTokenRequest } from '../objects/SellTokenRequest';
 import { BuyTokenRequest } from '../objects/BuyTokenRequest';
 import { Table } from 'react-bootstrap';
@@ -12,11 +11,12 @@ import TokenLink from '../components/TokenLink';
 import { OptionDef } from '../objects/OptionDef';
 import { promptOptionAmount } from '../utils/Alerts';
 import { createBuyOptionRequest, createTokenBuyRequest, createTokenSellRequest } from '../actions/BuyRequestActions';
-import { formatERGAmount, formatLongString } from '../utils/utils';
+import { formatERGAmount } from '../utils/utils';
 import addIcon from "../images/add_circle_outline_black_48dp.png";
 import { getAMMPrices } from '../ergo-related/amm';
-import { NANOERG_TO_ERG } from '../utils/constants';
-
+import TokenPriceAmount from '../components/TokenPriceAmount';
+import HelpToolTip from '../components/HelpToolTip';
+import helpIcon from '../images/help_outline_blue_48dp.png';
 
 export default class TokenMarketPage extends React.Component {
     constructor(props) {
@@ -151,16 +151,45 @@ export default class TokenMarketPage extends React.Component {
                     </button>
                     <div></div>
                 </div>
+                <br/>
                 <div className='w-100 zonemint m-1 p-1'>
                     {
                         this.state.tokenRequests ?
                             <Table striped hover>
                                 <thead>
                                     <tr>
-                                        <th>Token</th>
-                                        <th>Price</th>
-                                        <th>Buy orders</th>
-                                        <th>Sell orders</th>
+                                        <th>
+                                            <div className='d-flex flex-row'>
+                                                <div>Token</div>
+                                                <HelpToolTip image={helpIcon} id='Token id help' html={
+                                                    <div>Token to buy or sell</div>
+                                                } />
+                                            </div>
+                                        </th>
+                                        <th>
+                                            <div className='d-flex flex-row'>
+                                                <div>Price</div>
+                                                <HelpToolTip image={helpIcon} id='Price token market help' html={
+                                                    <div>Oracle or Spectrum AMM liquidity pool price if any</div>
+                                                } />
+                                            </div>
+                                        </th>
+                                        <th>
+                                            <div className='d-flex flex-row'>
+                                                <div>Buy orders</div>
+                                                <HelpToolTip image={helpIcon} id='Buy orders token market help' html={
+                                                    <div>Available open buy order</div>
+                                                } />
+                                            </div>
+                                        </th>
+                                        <th>
+                                            <div className='d-flex flex-row'>
+                                                <div>Sell orders</div>
+                                                <HelpToolTip image={helpIcon} id='Buy orders token market help' html={
+                                                    <div>Available open sell order</div>
+                                                } />
+                                            </div>
+                                        </th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -190,13 +219,13 @@ export default class TokenMarketPage extends React.Component {
                                                                 console.log("btr", btr)
                                                                 return <div className="w-100 d-flex flex-row justify-content-between zonemint m-1 p-1"
                                                                     key={btr.full.boxId}>
-                                                                    <div>
-                                                                        <div>{"Price " + formatERGAmount(btr.tokenPrice * tokenDecimalFactor)}</div>
-                                                                        <div>{"Amount " + Math.round(btr.tokenAmount / tokenDecimalFactor)}</div>
-                                                                    </div>
+                                                                    <TokenPriceAmount
+                                                                        tokenPrice={btr.tokenPrice}
+                                                                        tokenAmount={btr.tokenAmount}
+                                                                        tokenDecimalFactor={tokenDecimalFactor} />
                                                                     <button className='btn btn-blue m-1 p-1'
                                                                         onClick={() => this.sellToken(btr.tokenId, btr.tokenAmount / tokenDecimalFactor, btr.tokenPrice * tokenDecimalFactor)}
-                                                                        disabled={this.state.walletTokens.findIndex(t=>t.tokenId === tokenId) < 0}>
+                                                                        disabled={this.state.walletTokens.findIndex(t => t.tokenId === tokenId) < 0}>
                                                                         Sell
                                                                     </button>
                                                                 </div>
@@ -213,10 +242,10 @@ export default class TokenMarketPage extends React.Component {
                                                                 console.log("str", str)
                                                                 return <div className="w-100 d-flex flex-row justify-content-between zonemint m-1 p-1"
                                                                     key={str.full.boxId}>
-                                                                    <div>
-                                                                        <div>{"Price " + formatERGAmount(str.tokenPrice * tokenDecimalFactor)}</div>
-                                                                        <div>{"Amount " + Math.round(str.tokenAmount / tokenDecimalFactor)}</div>
-                                                                    </div>
+                                                                    <TokenPriceAmount
+                                                                        tokenPrice={str.tokenPrice}
+                                                                        tokenAmount={str.tokenAmount}
+                                                                        tokenDecimalFactor={tokenDecimalFactor} />
                                                                     <button className='btn btn-blue m-1 p-1'
                                                                         onClick={() => this.buyToken(tokenId, str.tokenAmount / tokenDecimalFactor, str.tokenPrice)}>
                                                                         Buy
@@ -232,10 +261,10 @@ export default class TokenMarketPage extends React.Component {
                                                                 console.log("sor", sor)
                                                                 return <div className="w-100 d-flex flex-row justify-content-between zonemint m-1 p-1"
                                                                     key={sor.full.boxId}>
-                                                                    <div>
-                                                                        <div>{"Price " + formatERGAmount(sor.currentOptionPrice)}</div>
-                                                                        <div>{"Amount " + Math.round(sor.optionAmount / tokenDecimalFactor)}</div>
-                                                                    </div>
+                                                                    <TokenPriceAmount
+                                                                        tokenPrice={sor.currentOptionPrice}
+                                                                        tokenAmount={sor.optionAmount}
+                                                                        tokenDecimalFactor={tokenDecimalFactor} />
                                                                     <button className='btn btn-blue m-1 p-1'
                                                                         onClick={() => this.buyOption(sor, sor.currentOptionPrice, sor.optionAmount / tokenDecimalFactor)}>
                                                                         Buy

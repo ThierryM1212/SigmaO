@@ -3,6 +3,7 @@ import { createTokenBuyRequest, createTokenSellRequest, refundBuyRequest } from 
 import { promptOptionAmount } from '../utils/Alerts';
 import { formatERGAmount } from '../utils/utils';
 import AddressLink from './AddressLink';
+import TokenImage from './TokenImage';
 import TokenLink from './TokenLink';
 
 /* global BigInt */
@@ -29,7 +30,12 @@ export default function BuyTokenCard(props) {
             <div className="card sell-option-card d-flex flex-column m-1 p-1">
                 <div className="w-100 d-flex flex-column align-items-center">
                     <div className='w-75 d-flex flex-column align-items-center gold-border m-2 p-2'>
-                        <div>Buy {buyTokenRequest.tokenAmount / tokenDecimalFactor} <TokenLink tokenId={buyTokenRequest.tokenId} name={tokenInfo.name} /></div>
+                        <div>Buy {buyTokenRequest.tokenAmount / tokenDecimalFactor}
+                            <div className='d-flex flex-row align-items-center'>
+                                
+                                <TokenLink tokenId={buyTokenRequest.tokenId} name={tokenInfo.name} />
+                            </div>
+                        </div>
                         <div>at {formatERGAmount(buyTokenRequest.tokenPrice * tokenDecimalFactor)} per token</div>
                     </div>
 
@@ -46,7 +52,7 @@ export default function BuyTokenCard(props) {
                 </div>
                 <div className="w-100 d-flex flex-row justify-content-center">
                     <button className='btn btn-blue m-2 p-2'
-                        onClick={() => sellToken(buyTokenRequest.tokenId, buyTokenRequest.tokenAmount / tokenDecimalFactor, buyTokenRequest.tokenPrice * tokenDecimalFactor )}>
+                        onClick={() => sellToken(buyTokenRequest.tokenId, buyTokenRequest.tokenAmount / tokenDecimalFactor, buyTokenRequest.tokenPrice * tokenDecimalFactor)}>
                         Sell
                     </button>
 

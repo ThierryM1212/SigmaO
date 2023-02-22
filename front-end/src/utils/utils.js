@@ -96,7 +96,7 @@ function sqrtBigInt(i) {
 }
 
 export function getOptionPrice(optionType, optionStyle, currentDateUNIX, maturityDate, currentOraclePrice, strikePrice, shareSize, sigma, K1, K2) {
-    console.log("getOptionPrice", optionType, optionStyle, currentDateUNIX, maturityDate, currentOraclePrice, strikePrice, shareSize, sigma, K1, K2)
+    //console.log("getOptionPrice", optionType, optionStyle, currentDateUNIX, maturityDate, currentOraclePrice, strikePrice, shareSize, sigma, K1, K2)
     try {
         const remainingDuration = BigInt(maturityDate) - BigInt(currentDateUNIX);
 

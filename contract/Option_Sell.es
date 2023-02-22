@@ -1,6 +1,20 @@
 {   
-    // Sell SigmaO Option
-    // needs an Oracle like SigUSD or Spectrum AMM LP to get the token price in nanoerg
+    //////////////////////////////////////////////////////////
+    // Sell SigmaO Option priced emulating Black-Scholes
+    //////////////////////////////////////////////////////////
+    // Needs an Oracle like SigUSD or Spectrum AMM LP to get the underlying token price in nanoerg
+    // ERG amount: MinBoxValue + TX_FEE: 2100000 nanoERG
+    // Tokens:
+    //      0: N options token to sell
+    // R4: SigmaProp: Seller PK
+    // R5: Box: Option creation box (boxId = optionTokenId)
+    // R6: Coll[Long]: [
+    //        sigma, // volatility per 1000
+    //        K1, // spread factor per 1000
+    //        K2, // american factor per 1000
+    //        dAppUIFee, // per 1000
+    // ]
+    // R7: Coll[Byte]: dApp UI ergotree
 
     val valueIn: Long = SELF.value
     val sellerPK: SigmaProp = SELF.R4[SigmaProp].get
