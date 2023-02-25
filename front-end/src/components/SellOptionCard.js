@@ -1,6 +1,6 @@
 import React, { Fragment } from 'react';
 import { formatERGAmount, getOptionPrice } from '../utils/utils';
-import {  promptOptionAmount } from '../utils/Alerts';
+import { promptOptionAmount } from '../utils/Alerts';
 import OptionCard from './OptionCard';
 import { createBuyOptionRequest, refundSellOption } from '../actions/BuyRequestActions';
 import AddressLink from './AddressLink';
@@ -29,7 +29,7 @@ export default function SellOptionCard(props) {
     const underlyingTokenInfo = optionDef.underlyingTokenInfo;
     const optionPrice = getOptionPrice(optionDef.optionType, optionDef.optionStyle, (new Date()).valueOf(), optionDef.maturityDate,
         oraclePrice, optionDef.strikePrice * Math.pow(10, underlyingTokenInfo.decimals), optionDef.shareSize, sellOptionRequest.sigma, sellOptionRequest.K1, sellOptionRequest.K2);
-    
+
     console.log("SellOptionCard", props);
     const availableOptionAmount = sellOptionRequest.optionAmount / Math.pow(10, underlyingTokenInfo.decimals);
     return (
@@ -43,7 +43,9 @@ export default function SellOptionCard(props) {
                     {
                         optionDef ?
                             <div>
-                                <OptionCard option={sellOptionRequest.option} oraclePrice={sellOptionRequest.currentOraclePrice} showExercise={false} />
+                                <OptionCard option={sellOptionRequest.option}
+                                    oraclePrice={sellOptionRequest.currentOraclePrice}
+                                    showExercise={false} />
                             </div>
                             : null
                     }

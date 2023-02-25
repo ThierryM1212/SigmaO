@@ -18,6 +18,8 @@ import TokenPriceAmount from '../components/TokenPriceAmount';
 import HelpToolTip from '../components/HelpToolTip';
 import helpIcon from '../images/help_outline_blue_48dp.png';
 
+/* global BigInt */
+
 export default class TokenMarketPage extends React.Component {
     constructor(props) {
         super(props);
@@ -262,7 +264,7 @@ export default class TokenMarketPage extends React.Component {
                                                                 return <div className="w-100 d-flex flex-row justify-content-between zonemint m-1 p-1"
                                                                     key={sor.full.boxId}>
                                                                     <TokenPriceAmount
-                                                                        tokenPrice={sor.currentOptionPrice}
+                                                                        tokenPrice={sor.currentOptionPrice / BigInt(tokenDecimalFactor)}
                                                                         tokenAmount={sor.optionAmount}
                                                                         tokenDecimalFactor={tokenDecimalFactor} />
                                                                     <button className='btn btn-blue m-1 p-1'
