@@ -5,6 +5,11 @@
 - The contract is permission less and fully hedged
 - A configurable fee for the UI provider is available
 
+A presentation of the project is available at https://medium.com/@Haileypdll/sigmao-options-on-ergo-tokens-18adaa098416
+
+The UI can be tested at: https://www.sigmao.cc
+
+
 ![Sigma'O global diagram](./contract/images/Option_global.drawio.png)
 
 ## Option Contract
