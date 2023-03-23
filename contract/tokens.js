@@ -69,7 +69,7 @@ const TOKENS = [
         decimals: 4,
         oracleTokenId: "04f468174eddbc68bce3f0965dd14bc6ed1443f5a405ec7f7f9925d999370b97",
         oracleType: "Spectrum LP",
-        icon: "egio.svg",
+        icon: "epos.svg",
     },
     {
         name: "Erdoge",
