@@ -1,11 +1,10 @@
 import React from 'react';
-import { getTokensForAddress, getUnspentBoxesForAddressUpdated, searchUnspentBoxes, searchUnspentBoxesUpdated } from '../ergo-related/explorer';
+import { getTokensForAddress, searchUnspentBoxes, searchUnspentBoxesUpdated } from '../ergo-related/explorer';
 import { SellOptionRequest } from '../objects/SellOptionRequest';
 import { BUY_TOKEN_REQUEST_SCRIPT_ADDRESS, SELL_FIXED_SCRIPT_ADDRESS, UNDERLYING_TOKENS } from '../utils/script_constants';
 import { getAMMPrices } from '../ergo-related/amm';
 import { NANOERG_TO_ERG } from '../utils/constants';
 import { getWalletOptions } from '../utils/option_utils';
-import OptionCard from '../components/OptionCard';
 import OptionList from '../components/OptionList';
 import SellOptionList from '../components/SellOptionList';
 import { addressToSigmaPropHex } from '../ergo-related/serializer';

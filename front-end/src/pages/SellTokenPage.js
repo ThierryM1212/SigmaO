@@ -1,4 +1,4 @@
-import React, { Fragment } from 'react';
+import React from 'react';
 import { NANOERG_TO_ERG, TX_FEE } from '../utils/constants';
 import ThemedSelect from '../components/ThemedSelect';
 import "react-datepicker/dist/react-datepicker.css";
@@ -11,7 +11,7 @@ import { createTokenSellRequest } from '../actions/BuyRequestActions';
 import ExternalSales from '../components/ExternalSales';
 import { BuyTokenRequest } from '../objects/BuyTokenRequest';
 import BuyTokenList from '../components/BuyTokenList';
-import { BUY_TOKEN_REQUEST_SCRIPT_ADDRESS, UNDERLYING_TOKENS } from '../utils/script_constants';
+import { BUY_TOKEN_REQUEST_SCRIPT_ADDRESS } from '../utils/script_constants';
 import HelpToolTip from '../components/HelpToolTip';
 import helpIcon from '../images/help_outline_blue_48dp.png';
 import { getWalletOptions } from '../utils/option_utils';
@@ -43,10 +43,10 @@ export default class SellTokenPage extends React.Component {
     setTokenId = (s) => { this.setState({ tokenId: s }); };
 
     async mintSellToken() {
-        console.log("mintSellToken", this.state.tokenId,
-            this.state.tokenAmount, this.state.tokenPrice)
+        //console.log("mintSellToken", this.state.tokenId, this.state.tokenAmount, this.state.tokenPrice)
         const txId = await createTokenSellRequest(this.state.tokenId,
             this.state.tokenAmount, this.state.tokenPrice);
+        console.log("mintSellToken", txId);
     }
 
     async fetchBuyTokenRequests() {

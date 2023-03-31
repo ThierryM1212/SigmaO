@@ -1,4 +1,4 @@
-import { Navbar, Nav, Dropdown, NavDropdown } from 'react-bootstrap';
+import { Navbar, Nav, NavDropdown } from 'react-bootstrap';
 import Logo from "../images/sigmaOLogo_24dp.svg";
 import DashboardIcon from "../images/dashboard_white_24dp.svg";
 import InputAddress from './InputAddress';
@@ -20,7 +20,7 @@ function NavigationBar(props) {
                     &nbsp;
                     <h5>
                         <NavDropdown
-                            id="nav-dropdown-dark-example"
+                            id="nav-dropdown"
                             title="Options"
                             menuVariant="dark"
                             className='dropdown-menu-dark'
@@ -34,7 +34,7 @@ function NavigationBar(props) {
                     &nbsp;
                     <h5>
                         <NavDropdown
-                            id="nav-dropdown-dark-example"
+                            id="nav-dropdown"
                             title="Tokens"
                             menuVariant="dark"
                         >

@@ -28,7 +28,6 @@ export default class TokenMarketPage extends React.Component {
             sellTokenRequestsList: undefined,
             buyTokenRequestsList: undefined,
             tokenRequests: undefined,
-            tokenRequests: undefined,
             AMMPrices: [],
             walletTokens: [],
         };
@@ -37,12 +36,14 @@ export default class TokenMarketPage extends React.Component {
 
     async buyToken(tokenId, maxAmount, tokenPrice) {
         const tokenAmount = await promptOptionAmount("Amount of tokens to buy", maxAmount);
-        const txId = await createTokenBuyRequest(tokenId, tokenAmount, tokenPrice)
+        const txId = await createTokenBuyRequest(tokenId, tokenAmount, tokenPrice);
+        console.log("buyToken txId", txId);
     }
 
     async sellToken(tokenId, tokenAmount, tokenPrice) {
         console.log("sellToken", tokenId, tokenAmount, tokenPrice);
         const txId = await createTokenSellRequest(tokenId, tokenAmount, tokenPrice);
+        console.log("sellToken txId", txId);
     }
 
     async buyOption(sellRequest, optionPrice, maxAmount) {
@@ -117,6 +118,7 @@ export default class TokenMarketPage extends React.Component {
     render() {
         return (
             <div className='w-100 d-flex flex-column align-items-center m-2 p-2'>
+                <h3>Sigma'O market</h3>
                 <div className='w-100 d-flex flex-row justify-content-between'>
                     <div></div>
                     <button className='btn btn-blue'
@@ -187,7 +189,7 @@ export default class TokenMarketPage extends React.Component {
                                         <th>
                                             <div className='d-flex flex-row'>
                                                 <div>Sell orders</div>
-                                                <HelpToolTip image={helpIcon} id='Buy orders token market help' html={
+                                                <HelpToolTip image={helpIcon} id='Sell orders token market help' html={
                                                     <div>Available open sell order</div>
                                                 } />
                                             </div>
