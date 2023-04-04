@@ -14,14 +14,14 @@ import UserDashboard from './pages/UserDashboard';
 import SellTokenPage from './pages/SellTokenPage';
 import BuyTokensPage from './pages/BuyTokensPage';
 import TokenMarketPage from './pages/TokenMarketPage';
-//import MatrixBackground from './components/MatrixBackground';
+import MatrixBackground from './components/MatrixBackground';
 
 export default class App extends React.Component {
 
   render() {
     return (
       <div className="App">
-        {/* <MatrixBackground timeout={60}/> */}
+        <MatrixBackground timeout={60}/>
         <BrowserRouter >
           <NavigationBar />
           <div className='page-container'>
