@@ -39,13 +39,13 @@ export default class SellTokenPage extends React.Component {
     }
 
     setTokenAmount = (s) => { this.setState({ tokenAmount: s.replace(/[^0-9.]/g, "") }); };
-    setTokenPrice = (s) => { this.setState({ tokenPrice: s.replace(/[^0-9]/g, "") }); };
+    setTokenPrice = (s) => { this.setState({ tokenPrice: s.replace(/[^0-9.]/g, "") }); };
     setTokenId = (s) => { this.setState({ tokenId: s }); };
 
     async mintSellToken() {
         //console.log("mintSellToken", this.state.tokenId, this.state.tokenAmount, this.state.tokenPrice)
         const txId = await createTokenSellRequest(this.state.tokenId,
-            this.state.tokenAmount, this.state.tokenPrice);
+            this.state.tokenAmount, Math.round(this.state.tokenPrice * NANOERG_TO_ERG));
         console.log("mintSellToken", txId);
     }
 
@@ -151,7 +151,7 @@ export default class SellTokenPage extends React.Component {
                                         <div className='d-flex flex-row'>
                                             <div>Price</div>
                                             <HelpToolTip image={helpIcon} id='strike price help' html={
-                                                <div>Token price in nanoERG</div>
+                                                <div>Token price in ERG</div>
                                             } />
                                         </div>
                                     </td>
@@ -170,7 +170,7 @@ export default class SellTokenPage extends React.Component {
                                         {
                                             currentToken ?
                                                 <div>
-                                                    {formatERGAmount(Math.round(this.state.tokenPrice / currentTokenDecimalFactor) * currentTokenDecimalFactor)}
+                                                    {formatERGAmount(Math.round(this.state.tokenPrice * NANOERG_TO_ERG / currentTokenDecimalFactor) * currentTokenDecimalFactor)}
                                                     &nbsp;per {currentToken.name}
                                                 </div>
                                                 :
@@ -212,7 +212,7 @@ export default class SellTokenPage extends React.Component {
                                                     <td>
                                                         {
                                                             currentToken ?
-                                                                formatERGAmount(this.state.tokenPrice * this.state.tokenAmount)
+                                                                formatERGAmount(this.state.tokenPrice * this.state.tokenAmount * NANOERG_TO_ERG)
                                                                 : null
                                                         }
                                                     </td>

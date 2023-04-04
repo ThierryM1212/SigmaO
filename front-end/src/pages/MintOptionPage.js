@@ -1,5 +1,5 @@
 import React, { Fragment } from 'react';
-import { DAPP_UI_FEE, DAPP_UI_MINT_FEE, DEFAULT_OPTION_DURATION, MAX_UI_OPTION_DURATION, MIN_NANOERG_BOX_VALUE, OPTION_STYLES, OPTION_TYPES, TX_FEE, TX_FEES } from '../utils/constants';
+import { DAPP_UI_FEE, DAPP_UI_MINT_FEE, DEFAULT_OPTION_DURATION, MAX_UI_OPTION_DURATION, MIN_NANOERG_BOX_VALUE, NANOERG_TO_ERG, OPTION_STYLES, OPTION_TYPES, TX_FEE, TX_FEES } from '../utils/constants';
 import ThemedSelect from '../components/ThemedSelect';
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
@@ -44,7 +44,7 @@ export default class MintOptionPage extends React.Component {
             underlyingOptionDef: undefined,
             optionAmount: 10,
             shareSize: 1, // token per option, to be multiplied by decimal factor in contract
-            strikePrice: 1000000, // nanoerg per token, to be adjusted by decimal factor in contract
+            strikePrice: 0.001, // nanoerg per token, to be adjusted by decimal factor in contract
             maturityDate: initMaturityDate,
             txFee: TX_FEE,
             pricingDate: new Date(),
@@ -96,7 +96,7 @@ export default class MintOptionPage extends React.Component {
     };
     setOptionAmount = (amount) => { this.setState({ optionAmount: amount.replace(/[^0-9]/g, "") }); };
     setShareSize = (shareSize) => { this.setState({ shareSize: shareSize.replace(/[^0-9]/g, "") }); };
-    setStrikePrice = (strikePrice) => { this.setState({ strikePrice: strikePrice.replace(/[^0-9]/g, "") }); };
+    setStrikePrice = (strikePrice) => { this.setState({ strikePrice: strikePrice.replace(/[^0-9.]/g, "") }); };
     setMaturityDate = (date) => { this.setState({ maturityDate: date }); };
     setPricingDate = (date) => { this.setState({ pricingDate: date }); };
     setSigma = (s) => { this.setState({ sigma: s.replace(/[^0-9]/g, "") }); };
@@ -112,7 +112,7 @@ export default class MintOptionPage extends React.Component {
             const optionStyleNum = OPTION_STYLES.find(o => o.label === this.state.optionStyle).id;
             //const underlyingToken = this.state.walletTokens.find(tok => tok.tokenId === this.state.underlyingTokenId);
             await createOptionRequest(optionTypeNum, optionStyleNum, this.state.underlyingTokenId, this.state.optionAmount, this.state.shareSize,
-                this.state.strikePrice, maturityDate, this.state.txFee);
+                Math.round(this.state.strikePrice * NANOERG_TO_ERG), maturityDate, this.state.txFee);
         } catch (e) {
             console.log(e);
             errorAlert(e.toString())
@@ -133,8 +133,8 @@ export default class MintOptionPage extends React.Component {
         const txFees = TX_FEES.map(i => { return { value: i, label: formatERGAmount(i) } });
         const currentToken = this.state.walletTokens.find(tok => tok.tokenId === this.state.underlyingTokenId);
         console.log("currentToken", currentToken, Math.pow(10, currentToken?.decimals ?? 0))
-        const mintFee = DAPP_UI_MINT_FEE + Math.floor(this.state.shareSize * this.state.optionAmount * this.state.strikePrice * DAPP_UI_FEE / 1000);
-        console.log("mintFee", currentToken, mintFee, Math.floor(this.state.shareSize * this.state.optionAmount * this.state.strikePrice * DAPP_UI_FEE / 1000))
+        const mintFee = DAPP_UI_MINT_FEE + Math.floor(this.state.shareSize * this.state.optionAmount * this.state.strikePrice * NANOERG_TO_ERG * DAPP_UI_FEE / 1000);
+        console.log("mintFee", currentToken, mintFee, Math.floor(this.state.shareSize * this.state.optionAmount * this.state.strikePrice * NANOERG_TO_ERG * DAPP_UI_FEE / 1000))
         var strikePricePrecision = 4;
         if (this.state.strikePrice < 100000) {
             strikePricePrecision = 9;
@@ -264,7 +264,7 @@ export default class MintOptionPage extends React.Component {
                                         <div className='d-flex flex-row'>
                                             <div>Strike price</div>
                                             <HelpToolTip image={helpIcon} id='strike price help' html={
-                                                <div>Strike price in nanoERG</div>
+                                                <div>Strike price in ERG</div>
                                             } />
                                         </div>
                                     </td>
@@ -278,8 +278,7 @@ export default class MintOptionPage extends React.Component {
                                         />
 
                                     </td>
-                                    <td><small>nanoERG per token</small>
-                                        &nbsp;({formatERGAmount(Math.floor(this.state.strikePrice / Math.pow(10, this.state.underlyingTokenInfo?.decimals)) * Math.pow(10, this.state.underlyingTokenInfo?.decimals), strikePricePrecision)})</td>
+                                    <td><small>ERG per token</small></td>
                                 </tr>
                                 <tr>
                                     <td>Maturity date</td>
@@ -330,7 +329,7 @@ export default class MintOptionPage extends React.Component {
                                                         </strong>
                                                         :
                                                         <strong>
-                                                            {formatERGAmount(4 * this.state.txFee + 2 * MIN_NANOERG_BOX_VALUE + mintFee + this.state.shareSize * this.state.optionAmount * this.state.strikePrice)}
+                                                            {formatERGAmount(4 * this.state.txFee + 2 * MIN_NANOERG_BOX_VALUE + mintFee + this.state.shareSize * this.state.optionAmount * this.state.strikePrice * NANOERG_TO_ERG)}
                                                         </strong>
                                                 }
                                             </td>
@@ -341,7 +340,7 @@ export default class MintOptionPage extends React.Component {
                                                 {
                                                     this.state.optionType === 'Call' ?
                                                         <strong>
-                                                            {formatERGAmount(this.state.shareSize * this.state.optionAmount * this.state.strikePrice)}
+                                                            {formatERGAmount(this.state.shareSize * this.state.optionAmount * this.state.strikePrice * NANOERG_TO_ERG)}
                                                         </strong>
                                                         :
                                                         <strong>
@@ -434,7 +433,7 @@ export default class MintOptionPage extends React.Component {
                                         optionStyle={this.state.optionStyle}
                                         maturityDate={this.state.maturityDate}
                                         oraclePrice={this.state.oraclePrice}
-                                        strikePrice={this.state.strikePrice}
+                                        strikePrice={Math.round(this.state.strikePrice * NANOERG_TO_ERG)}
                                         shareSize={this.state.shareSize}
                                         sigma={this.state.sigma}
                                         K1={this.state.K1}
