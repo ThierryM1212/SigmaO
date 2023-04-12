@@ -76,15 +76,15 @@ export default class MintOptionPage extends React.Component {
     async setUnderlyingTokenId(tokenId) {
         //console.log("setUnderlyingToken", tokenId, UNDERLYING_TOKENS);
         var filteredTokenId = tokenId.replace(/[^0-9A-Fa-f]/g, "");
-        console.log("filteredTokenId", filteredTokenId);
+        //console.log("filteredTokenId", filteredTokenId);
         const underlyingTokenInfo = await getTokenInfo(filteredTokenId);
-        console.log("underlyingTokenInfo", underlyingTokenInfo);
+        //console.log("underlyingTokenInfo", underlyingTokenInfo);
         const underlyingToken = UNDERLYING_TOKENS.find(tok => tok.tokenId === filteredTokenId);
         if (underlyingToken) {
-            console.log("setUnderlyingToken underlyingToken", underlyingToken);
+            //console.log("setUnderlyingToken underlyingToken", underlyingToken);
             const oraclePrice = await getOraclePrice(underlyingToken.oracleNFTID);
-            console.log("setUnderlyingToken oraclePrice", oraclePrice);
-            this.setState({ underlyingTokenId: filteredTokenId, strikePrice: oraclePrice, oraclePrice: oraclePrice, underlyingTokenInfo: underlyingTokenInfo, underlyingOptionDef: undefined });
+            //console.log("setUnderlyingToken oraclePrice", oraclePrice);
+            this.setState({ underlyingTokenId: filteredTokenId, strikePrice: oraclePrice / NANOERG_TO_ERG, oraclePrice: oraclePrice, underlyingTokenInfo: underlyingTokenInfo, underlyingOptionDef: undefined });
         } else {
             const tokenIssuerBox = await boxByIdv1(tokenId);
             var optionDef = undefined;
@@ -120,7 +120,7 @@ export default class MintOptionPage extends React.Component {
     }
 
     async componentDidMount() {
-        console.log("componentDidMount");
+        //console.log("componentDidMount");
         const addressBalance = await getBalanceForAddress(localStorage.getItem('address') ?? '');
         const walletTokens = addressBalance.confirmed.tokens;
         this.setState({ walletTokens: walletTokens });
@@ -130,11 +130,28 @@ export default class MintOptionPage extends React.Component {
 
     render() {
         const underlyingTokens = this.state.walletTokens.map(u_tok => { return { value: u_tok.tokenId, label: u_tok.name } });
+        var underlyingPutTokens = [...underlyingTokens];
+        const walletTokenIds = underlyingPutTokens.map(t => t.value);
+        for (const tok of UNDERLYING_TOKENS) {
+            if (!walletTokenIds.includes(tok.tokenId)) {
+                underlyingPutTokens.push({ value: tok.tokenId, label: tok.label } )
+            }
+        }
         const txFees = TX_FEES.map(i => { return { value: i, label: formatERGAmount(i) } });
-        const currentToken = this.state.walletTokens.find(tok => tok.tokenId === this.state.underlyingTokenId);
-        console.log("currentToken", currentToken, Math.pow(10, currentToken?.decimals ?? 0))
+        var currentToken = this.state.walletTokens.find(tok => tok.tokenId === this.state.underlyingTokenId);
+        if(!currentToken && UNDERLYING_TOKENS.map(t=>t.tokenId).includes(this.state.underlyingTokenId)) {
+            const u_tok = UNDERLYING_TOKENS.find(t=>t.tokenId === this.state.underlyingTokenId)
+            currentToken = {
+                name: u_tok.label,
+                amount: 0,
+                decimals: u_tok.decimals,
+                tokenId: u_tok.tokenId,
+            }
+        }
+
+        //console.log("currentToken", currentToken, this.state.walletTokens)
         const mintFee = DAPP_UI_MINT_FEE + Math.floor(this.state.shareSize * this.state.optionAmount * this.state.strikePrice * NANOERG_TO_ERG * DAPP_UI_FEE / 1000);
-        console.log("mintFee", currentToken, mintFee, Math.floor(this.state.shareSize * this.state.optionAmount * this.state.strikePrice * NANOERG_TO_ERG * DAPP_UI_FEE / 1000))
+        //console.log("mintFee", currentToken, mintFee, Math.floor(this.state.shareSize * this.state.optionAmount * this.state.strikePrice * NANOERG_TO_ERG * DAPP_UI_FEE / 1000))
         var strikePricePrecision = 4;
         if (this.state.strikePrice < 100000) {
             strikePricePrecision = 9;
@@ -199,7 +216,7 @@ export default class MintOptionPage extends React.Component {
                                                     <ThemedSelect id="underlyingToken"
                                                         value={currentToken?.name}
                                                         onChange={(tok) => this.setUnderlyingTokenId(tok.value)}
-                                                        options={underlyingTokens}
+                                                        options={underlyingPutTokens}
                                                     />
                                                     <input type="text"
                                                         id="underlyingToken"
