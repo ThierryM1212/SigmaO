@@ -1,21 +1,19 @@
 import React, { Fragment } from 'react';
-import { createTokenBuyRequest, createTokenSellRequest, refundBuyRequest } from '../actions/BuyRequestActions';
-import { promptOptionAmount } from '../utils/Alerts';
+import { createTokenSellRequest, refundBuyRequest } from '../actions/BuyRequestActions';
 import { formatERGAmount } from '../utils/utils';
 import AddressLink from './AddressLink';
-import TokenImage from './TokenImage';
 import TokenLink from './TokenLink';
-
-/* global BigInt */
 
 
 async function refund(box) {
     const txId = await refundBuyRequest(box);
+    console.log("refund sellToken txId", txId);
 }
 
 async function sellToken(tokenId, tokenAmount, tokenPrice) {
     console.log("sellToken", tokenId, tokenAmount, tokenPrice);
     const txId = await createTokenSellRequest(tokenId, tokenAmount, tokenPrice);
+    console.log("sellToken txId", txId);
 }
 
 export default function BuyTokenCard(props) {
@@ -29,7 +27,7 @@ export default function BuyTokenCard(props) {
 
             <div className="card sell-option-card d-flex flex-column m-1 p-1">
                 <div className="w-100 d-flex flex-column align-items-center">
-                    <div className='w-75 d-flex flex-column align-items-center gold-border m-2 p-2'>
+                    <div className='w-100 d-flex flex-column align-items-center gold-border m-2 p-2'>
                         <div>Buy {buyTokenRequest.tokenAmount / tokenDecimalFactor}
                             <div className='d-flex flex-row align-items-center'>
                                 

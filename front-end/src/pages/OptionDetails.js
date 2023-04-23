@@ -1,5 +1,5 @@
 import React from 'react';
-import { getOraclePrice, searchUnspentBoxes, } from '../ergo-related/explorer';
+import { getOraclePrice, searchBoxes, } from '../ergo-related/explorer';
 import { OPTION_SCRIPT_ADDRESS, UNDERLYING_TOKENS } from '../utils/script_constants';
 import { Option } from '../objects/Option';
 import OptionCard from '../components/OptionCard';
@@ -24,7 +24,7 @@ export default class OptionDetails extends React.Component {
     }
 
     async componentDidMount() {
-        var optionReserveBox = await searchUnspentBoxes(OPTION_SCRIPT_ADDRESS, [this.state.optionTokenId]);
+        var optionReserveBox = await searchBoxes(OPTION_SCRIPT_ADDRESS, [this.state.optionTokenId]);
         optionReserveBox = optionReserveBox.filter(b=>b.assets[0].tokenId === this.state.optionTokenId);
         if (optionReserveBox?.length > 0) {
             const option = await Option.create(optionReserveBox[0]);

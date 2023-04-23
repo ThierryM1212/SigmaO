@@ -7,6 +7,7 @@
   --my-bg-color3: rgb(44, 51, 66);
   --my-bg-color4: #13396a;
   --my-bg-yellow: rgba(250, 225, 0, 0.7);
+  --my-bg-red: rgba(219, 63, 36, 0.7);
 }
 
 .App {
@@ -76,12 +77,13 @@ h6 h5 {
 
 .option-card {
   background: rgba(0, 0, 0, 0.1);
-  max-width: 20rem;
+  width: 17rem;
   border-color: rgba(255, 255, 255, 0.25);
 }
 
 .sell-option-card {
   background: rgba(0, 0, 0, 0.1);
+  width: 17rem;
   border-color: rgba(255, 255, 255, 0.25);
 }
 
@@ -124,6 +126,10 @@ main{ flex:1; }
 .gold-border {
   border: 3px solid var(--my-bg-yellow);
   border-radius: 5px;
+}
+
+.red-text {
+  color: var(--my-bg-red);
 }
 
 .graph-container {

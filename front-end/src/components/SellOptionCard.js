@@ -5,7 +5,6 @@ import OptionCard from './OptionCard';
 import { createBuyOptionRequest, refundSellOption } from '../actions/BuyRequestActions';
 import AddressLink from './AddressLink';
 
-/* global BigInt */
 
 async function buyOption(sellRequest, optionPrice, maxAmount) {
     console.log("buyOption", sellRequest, "optionPrice", optionPrice)
@@ -18,6 +17,7 @@ async function buyOption(sellRequest, optionPrice, maxAmount) {
 async function refund(box) {
     //console.log("refund", box)
     const txId = await refundSellOption(box);
+    console.log("refund sell option txId", txId);
 }
 
 export default function SellOptionCard(props) {
@@ -37,7 +37,7 @@ export default function SellOptionCard(props) {
 
             <div className="card sell-option-card d-flex flex-column m-1 p-1">
                 <div className="w-100 d-flex flex-column align-items-center">
-                    <div className='w-75 gold-border m-2 p-2'>
+                    <div className='w-100 gold-border m-2 p-2 d-flex flex-column align-items-center'>
                         <div>{formatERGAmount(sellOptionRequest.currentOptionPrice)} <small>per option</small></div>
                     </div>
                     {

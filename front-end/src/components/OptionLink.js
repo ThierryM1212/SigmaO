@@ -9,7 +9,7 @@ import OptionCard from "./OptionCard";
 export default function OptionLink(props) {
     const URL = DEFAULT_EXPLORER_ADDRESS + 'en/token/' + props.optionDef.optionTokenId;
     return (
-        <div className="d-flex flew-row m-1 align-items-center">
+        <div className="w-100 d-flex flew-row m-1 align-items-center">
             <ReactTooltip id={props.optionDef.optionTokenId}
                 place="right"
                 effect="solid"
@@ -28,7 +28,7 @@ export default function OptionLink(props) {
                 target="_blank" rel="noreferrer"
                 data-tip
                 data-for={props.optionDef.optionTokenId} >
-                {formatLongString(props.optionDef.optionName, 15) }
+                {formatLongString(props.optionDef.optionName, 10) }
             </a>
             &nbsp;
 

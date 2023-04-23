@@ -176,7 +176,24 @@ export async function searchUnspentBoxes(address, tokens, registers = {}, limit 
     } else {
         return [];
     }
-    
+}
+
+export async function searchBoxes(address, tokens, registers = {}, limit = 50) {
+    const ergoT = await addressToErgoTree(address);
+    var searchParam = { "ergoTreeTemplateHash": await ergoTreeToTemplateHash(ergoT) }
+    if (tokens.length > 0) {
+        searchParam["assets"] = tokens;
+    }
+    if (Object.keys(registers).length > 0) {
+        searchParam['registers'] = registers;
+    }
+    const res = await post(explorerApiV1 + `/boxes/search?limit=${limit}`, searchParam);
+    console.log("searchBoxes", res);
+    if (res.result) {
+        return res.data.items;
+    } else {
+        return [];
+    }
 }
 
 export async function searchUnspentBoxesUpdated(address, tokens, registers = {}, limit = 50) {

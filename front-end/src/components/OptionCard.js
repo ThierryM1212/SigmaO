@@ -7,6 +7,7 @@ import StrikePriceIcon from '../images/currency_exchange_white_24dp.svg';
 import ShareSizeIcon from '../images/incomplete_circle_white_24dp.svg';
 import IntrinsicPriceIcon from '../images/attach_money_white_24dp.svg';
 import ReserveIcon from '../images/account_balance_white_24dp.svg';
+import ErrorIcon from '../images/error_outline_white_24dp.svg';
 import HelpToolTip from './HelpToolTip';
 import { exerciseOptionRequest } from '../actions/userOptionActions';
 import { promptOptionAmount } from '../utils/Alerts';
@@ -34,7 +35,7 @@ export default function OptionCard(props) {
                 {
                     optionDef ?
                         <Fragment>
-                            <div className='d-flex flex-column align-items-start m-1 p-1 '>
+                            <div className='d-flex flex-column w-100 align-items-start m-2 p-2 '>
                                 {
                                     optionDef.isCompoundOption ?
                                         <div className='d-flex flex-row align-items-center justify-content-start'>
@@ -151,6 +152,23 @@ export default function OptionCard(props) {
                                                 <div>
                                                     <div>{formatERGAmount(oraclePrice)}<small> per </small></div>
                                                     <div>{optionDef.underlyingTokenInfo.name}</div>
+                                                </div>
+                                            </div>
+                                        </Fragment>
+                                        : null
+                                }
+
+                                {
+                                    optionDef.isExpired ?
+                                        <Fragment>
+                                            <div className='w-100 d-flex flex-row align-items-center justify-content-between'>
+                                                <HelpToolTip 
+                                                    image={ErrorIcon}
+                                                    id="ErrorIcon"
+                                                    html={<div>The option is expired and cannot be exercised anymore.</div>}
+                                                />
+                                                <div>
+                                                    <b className='red-text'>Caution, the option is expired and worth nothing !</b>
                                                 </div>
                                             </div>
                                         </Fragment>

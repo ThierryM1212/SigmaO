@@ -6,15 +6,16 @@ import AddressLink from './AddressLink';
 import OptionLink from './OptionLink';
 import TokenLink from './TokenLink';
 
-/* global BigInt */
 
 async function buyToken(sellRequest, maxAmount, tokenPrice) {
     const tokenAmount = await promptOptionAmount("Amount of tokens to buy", maxAmount);
     const txId = await createTokenBuyRequest(sellRequest, tokenAmount, tokenPrice)
+    console.log("buyToken txId", txId);
 }
 
 async function refund(box) {
     const txId = await refundBuyRequest(box);
+    console.log("refund buy token txId", txId);
 }
 
 export default function SellTokenCard(props) {
@@ -28,8 +29,8 @@ export default function SellTokenCard(props) {
 
             <div className="card sell-option-card d-flex flex-column m-1 p-1">
                 <div className="w-100 d-flex flex-column align-items-center">
-                    <div className='w-75 d-flex flex-column align-items-center gold-border m-2 p-2'>
-                        <div>
+                    <div className='w-100 d-flex flex-column align-items-center gold-border m-2 p-2'>
+                        <div className="w-100 d-flex flex-column align-items-center">
                             <div>{formatERGAmount(sellTokenRequest.tokenPrice * tokenDecimalFactor)}</div>
                             <small> per </small>
                             {

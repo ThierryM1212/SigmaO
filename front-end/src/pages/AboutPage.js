@@ -18,6 +18,10 @@ function HomePage(props) {
                 <h6>Compound options (options on options are supported) allowing users to create Call on Call, Call on Put, Put on Call or Put on Put options.</h6>
             </div>
             <div className="w-75 zonemint m-2 p-2 d-flex flex-column align-items-start">
+                <h5>Medium article about Sigma'O</h5>
+                <a href="https://medium.com/@Haileypdll/sigmao-options-on-ergo-tokens-18adaa098416" target="_blank" rel="noreferrer">Medium - Sigma’O — Options on Ergo tokens</a>
+            </div>
+            <div className="w-75 zonemint m-2 p-2 d-flex flex-column align-items-start">
                 <h5>Trade option tokens using SigmaO priced smart contract</h5>
                 <h6>Sigma'O provides an option sell contract that price the option emulating the Black-Scholes formula.</h6>
                 <h6>The option priced sell contract is configurable by the seller to adjust the pricing behavior to its need.</h6>
@@ -29,13 +33,13 @@ function HomePage(props) {
             </div>
             <div className="w-75 zonemint m-2 p-2 d-flex flex-column align-items-start">
                 <h5>Information on options</h5>
-                <a href="https://www.investopedia.com/terms/o/option.asp" target="_blank">Investopedia - What Is an Option?</a>
-                <a href="https://en.wikipedia.org/wiki/Option_(finance)" target="_blank">Wikipedia - Option (Finance)</a>
-                <a href="https://www.investopedia.com/terms/c/compoundoption.asp" target="_blank">Investopedia - Compound option</a>
-                <a href="https://www.codearmo.com/python-tutorial/options-trading-options-pricing-introduction" target="_blank">CodeArmor - Option pricing introduction</a>
-                <a href="http://www.espenhaug.com/black_scholes.html" target="_blank">Black-Scholes implementations</a>
-                <a href="https://www.amazon.com/Options-Futures-Other-Derivatives-Global/dp/1292410655/" target="_blank">Options Futures and Other derivatives by John Hull</a>
-                <a href="https://www.amazon.com/Intelligent-Option-Investor-Applying-Investing/dp/007183365X" target="_blank">Intelligent Option Investor by Erik Kobayashi-Solomon</a>
+                <a href="https://www.investopedia.com/terms/o/option.asp" target="_blank" rel="noreferrer">Investopedia - What Is an Option?</a>
+                <a href="https://en.wikipedia.org/wiki/Option_(finance)" target="_blank" rel="noreferrer">Wikipedia - Option (Finance)</a>
+                <a href="https://www.investopedia.com/terms/c/compoundoption.asp" target="_blank" rel="noreferrer">Investopedia - Compound option</a>
+                <a href="https://www.codearmo.com/python-tutorial/options-trading-options-pricing-introduction" target="_blank" rel="noreferrer">CodeArmor - Option pricing introduction</a>
+                <a href="http://www.espenhaug.com/black_scholes.html" target="_blank" rel="noreferrer">Black-Scholes implementations</a>
+                <a href="https://www.amazon.com/Options-Futures-Other-Derivatives-Global/dp/1292410655/" target="_blank" rel="noreferrer">Options Futures and Other derivatives by John Hull</a>
+                <a href="https://www.amazon.com/Intelligent-Option-Investor-Applying-Investing/dp/007183365X" target="_blank" rel="noreferrer">Intelligent Option Investor by Erik Kobayashi-Solomon</a>
             </div>
             <div className="w-75 zonemint m-2 p-2 d-flex flex-column align-items-start">
                 <h5>SigmaO contracts</h5>
