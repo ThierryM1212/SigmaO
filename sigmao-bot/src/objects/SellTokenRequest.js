@@ -1,6 +1,7 @@
 import { getOraclePrice, getTokenInfo } from '../ergo-related/explorer.js';
-import { decodeLong, sigmaPropToAddress } from '../ergo-related/serializer.js';
-import { getRegisterValue } from '../ergo-related/wasm.js';
+import { decodeHex, decodeLongArray, sigmaPropToAddress } from '../ergo-related/serializer.js';
+import { ergoTreeToAddress, getRegisterValue } from '../ergo-related/wasm.js';
+import { DAPP_UI_ERGOTREE, DAPP_UI_FEE, TX_FEE } from '../utils/constants.js';
 import { UNDERLYING_TOKENS } from '../utils/script_constants.js';
 
 
@@ -11,15 +12,29 @@ export class SellTokenRequest {
         this.tokenId = '';
         this.tokenAmount = 0;
         this.tokenPrice = 0;
+        this.dAppUIFee = DAPP_UI_FEE;
+        this.txFee = TX_FEE;
+        this.dAppUIErgoTree = DAPP_UI_ERGOTREE;
+        this.dAppUIAddress = '';
         this.tokenInfo = undefined;
         this.currentOraclePrice = undefined;
+        this.optionDef = undefined;
     }
 
     async initialize() {
         this.sellerAddress = await sigmaPropToAddress(getRegisterValue(this.full, "R4"));
-        this.tokenPrice = await decodeLong(getRegisterValue(this.full, "R5"));
+        const sellParams = await decodeLongArray(getRegisterValue(this.full, "R5"));
+        const dAppUIErgoTree = await decodeHex(getRegisterValue(this.full, "R6"));
+        this.dAppUIErgoTree = dAppUIErgoTree;
+        //console.log("dAppUIErgoTree", dAppUIErgoTree);
+        this.dAppUIAddress = await ergoTreeToAddress(dAppUIErgoTree);
+
+        this.tokenPrice = sellParams[0];
+        this.dAppUIFee = sellParams[1];
+        this.txFee = sellParams[2];
         this.sellRequestValue = this.full.value;
         if (this.full.assets.length > 0) {
+            //console.log("this.full.assets[0]", this.full.assets[0])
             this.tokenId = this.full.assets[0].tokenId;
             this.tokenAmount = this.full.assets[0].amount;
             this.tokenInfo = await getTokenInfo(this.tokenId);

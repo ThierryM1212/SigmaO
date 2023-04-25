@@ -7,9 +7,10 @@ import OptionLink from './OptionLink';
 import TokenLink from './TokenLink';
 
 
-async function buyToken(sellRequest, maxAmount, tokenPrice) {
+async function buyToken(tokenId, maxAmount, tokenPrice, txFee, dAppUIFee) {
+    //console.log("buyToken", tokenId, maxAmount, tokenPrice, txFee, dAppUIFee);
     const tokenAmount = await promptOptionAmount("Amount of tokens to buy", maxAmount);
-    const txId = await createTokenBuyRequest(sellRequest, tokenAmount, tokenPrice)
+    const txId = await createTokenBuyRequest(tokenId, tokenAmount, tokenPrice, txFee, dAppUIFee)
     console.log("buyToken txId", txId);
 }
 
@@ -20,7 +21,7 @@ async function refund(box) {
 
 export default function SellTokenCard(props) {
     const address = localStorage.getItem('address') ?? '';
-    console.log("SellTokenCard", props);
+    //console.log("SellTokenCard", props);
     const sellTokenRequest = props.sellTokenRequest;
     const tokenInfo = sellTokenRequest.tokenInfo;
     const tokenDecimalFactor = Math.pow(10, tokenInfo?.decimals ?? 0);
@@ -52,10 +53,24 @@ export default function SellTokenCard(props) {
                             <div>Issuer</div>
                             <div><AddressLink address={sellTokenRequest.sellerAddress} /></div>
                         </div>
+                        <div className="w-100 d-flex flex-row justify-content-between">
+                            <div>Miner Fee</div>
+                            <div>{formatERGAmount(sellTokenRequest.txFee)}</div>
+                        </div>
+                        <div className="w-100 d-flex flex-row justify-content-between">
+                            <div>dApp UI fee</div>
+                            <div>{parseFloat(sellTokenRequest.dAppUIFee/10).toFixed(2)} %</div>
+                        </div>
                     </div>
+
                 </div>
                 <div className="w-100 d-flex flex-row justify-content-center">
-                    <button className='btn btn-blue m-2 p-2' onClick={() => buyToken(sellTokenRequest.tokenId, sellTokenRequest.tokenAmount / tokenDecimalFactor, sellTokenRequest.tokenPrice)}>Buy</button>
+                    <button className='btn btn-blue m-2 p-2' onClick={() => buyToken(sellTokenRequest.tokenId, 
+                        sellTokenRequest.tokenAmount / tokenDecimalFactor, 
+                        sellTokenRequest.tokenPrice,
+                        sellTokenRequest.txFee,
+                        sellTokenRequest.dAppUIFee
+                        )}>Buy</button>
                     <button className='btn btn-blue m-2 p-2'
                         onClick={() => refund(sellTokenRequest.full)}
                         disabled={sellTokenRequest.sellerAddress !== address}

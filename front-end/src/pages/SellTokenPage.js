@@ -1,5 +1,5 @@
 import React from 'react';
-import { NANOERG_TO_ERG, TX_FEE } from '../utils/constants';
+import { NANOERG_TO_ERG, TX_FEE, TX_FEES } from '../utils/constants';
 import ThemedSelect from '../components/ThemedSelect';
 import "react-datepicker/dist/react-datepicker.css";
 import { errorAlert } from '../utils/Alerts';
@@ -31,21 +31,24 @@ export default class SellTokenPage extends React.Component {
             walletOptions: [],
             AMMPrices: [],
             buyTokenRequests: undefined,
+            txFee: TX_FEE,
         };
 
         this.setTokenAmount = this.setTokenAmount.bind(this);
         this.setTokenPrice = this.setTokenPrice.bind(this);
         this.setTokenId = this.setTokenId.bind(this);
+        this.setTxFee = this.setTxFee.bind(this);
     }
 
     setTokenAmount = (s) => { this.setState({ tokenAmount: s.replace(/[^0-9.]/g, "") }); };
     setTokenPrice = (s) => { this.setState({ tokenPrice: s.replace(/[^0-9.]/g, "") }); };
     setTokenId = (s) => { this.setState({ tokenId: s }); };
+    setTxFee = (s) => { this.setState({ txFee: s }); };
 
     async mintSellToken() {
         //console.log("mintSellToken", this.state.tokenId, this.state.tokenAmount, this.state.tokenPrice)
-        const txId = await createTokenSellRequest(this.state.tokenId,
-            this.state.tokenAmount, Math.round(this.state.tokenPrice * NANOERG_TO_ERG));
+        const txId = await createTokenSellRequest(this.state.tokenId, this.state.tokenAmount,            
+            Math.round(this.state.tokenPrice * NANOERG_TO_ERG), this.state.txFee);
         console.log("mintSellToken", txId);
     }
 
@@ -83,6 +86,7 @@ export default class SellTokenPage extends React.Component {
         const currentTokenPrice = this.state.AMMPrices.find(t => t.tokenId === this.state.tokenId)?.price ?? 0;
         const currentTokenDecimalFactor = Math.pow(10, currentToken?.decimals) ?? 1;
         const currentOption = this.state.walletOptions.find(o => o.optionDef.optionTokenId === this.state.tokenId);
+        const txFees = TX_FEES.map(i => { return { value: i, label: formatERGAmount(i) } });
         return (
             <div className="w-100 m-1 p-1">
                 <div className="card zonemint p-1 m-2">
@@ -193,6 +197,19 @@ export default class SellTokenPage extends React.Component {
                                     </td>
                                     <td></td>
                                 </tr>
+                                <tr>
+                                    <td>Miner fee</td>
+                                    <td>
+                                        <div className='w-100'>
+                                            <ThemedSelect id="txFee"
+                                                value={txFees.find(i => i.value === this.state.txFee).label}
+                                                onChange={(i) => this.setTxFee(i.value)}
+                                                options={txFees}
+                                            />
+                                        </div>
+                                    </td>
+                                    <td><small>Transaction miner fee</small></td>
+                                </tr>
 
                             </tbody>
                         </Table>
@@ -205,7 +222,7 @@ export default class SellTokenPage extends React.Component {
                                             <tbody>
                                                 <tr>
                                                     <td>Cost</td>
-                                                    <td>{formatERGAmount(TX_FEE)}</td>
+                                                    <td>{formatERGAmount(2 * this.state.txFee)}</td>
                                                 </tr>
                                                 <tr>
                                                     <td>Total sell price</td>

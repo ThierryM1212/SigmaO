@@ -45,7 +45,6 @@ var jsTokenList = [], symbolFileName = '';
 // Compile static contracts
 const optionCompiledContract = compileContract('./Option.es');
 const buyCompiledContract = compileContract('./Buy_Token_Request.es');
-const sellFixedCompiledContract = compileContract('./Sell_Token_Request.es');
 
 // Compile Sell contracts depeding on tokenid and oracle nft
 for (var token of TOK.TOKENS) {
@@ -86,6 +85,7 @@ for (var token of TOK.TOKENS) {
 
 // Compile exercise request contract, linked with the option contract
 const exerciseCompiledContract = compileContract('./Exercise_Option_Request.es', symbolFileName);
+const sellFixedCompiledContract = compileContract('./Sell_Token_Request.es', symbolFileName);
 
 const scriptConstants = {
     buyOptionAddress: buyCompiledContract.scriptAddress,
