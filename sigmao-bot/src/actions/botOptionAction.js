@@ -548,7 +548,7 @@ export async function processBuyRequest(buyRequest) {
             }
 
             const tx = await createTransaction(boxSelection, outputCandidates, [], DAPP_UI_ADDRESS, utxos, txFee);
-            console.log("processFixedBuyRequest tx", JSONBigInt.stringify(tx, null, 4));
+            //console.log("processFixedBuyRequest tx", JSONBigInt.stringify(tx, null, 4));
             const wallet = (await ergolib).Wallet.from_mnemonic("", "");
             const signedTxTmp = await signTransaction(tx, utxos, [], wallet);
             const signedTx = JSONBigInt.parse(signedTxTmp);

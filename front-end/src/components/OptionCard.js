@@ -21,14 +21,14 @@ async function exerciseOption(optionTokenId, maxAmount) {
 }
 
 export default function OptionCard(props) {
-    console.log("OptionCard", props);
+    //console.log("OptionCard", props);
     const option = props.option;
     const optionDef = props.option?.optionDef ?? props.option;
     const oraclePrice = props?.oraclePrice;
     const underlyingTokendecimalFactor = Math.pow(10, optionDef?.underlyingTokenInfo?.decimals ?? 0);
     const walletOptionAmountRaw = props.walletOptionAmount ?? 0;
     const walletOptionAmount = (walletOptionAmountRaw / underlyingTokendecimalFactor).toFixed(optionDef?.underlyingTokenInfo?.decimals ?? 0);
-    console.log("optionDef", optionDef)
+    //console.log("OptionCard optionDef", optionDef)
     return (
         <Fragment>
             <div className="card option-card d-flex flex-column justify-content-between align-items-center h-100">

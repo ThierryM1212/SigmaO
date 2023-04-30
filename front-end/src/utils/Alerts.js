@@ -74,7 +74,7 @@ export function promptOptionAmount(title, max) {
         var html = "<div>"
         html = html + '<input type="text" id="optionAmount" class="swal2-input" placeholder="Token amount" autocomplete="off">'
         if (max) {
-            html = html + `<button class="btn-blue" onClick="document.getElementById('optionAmount').value= ${max};" >max (${max})</button>`;
+            html = html + `<button class="btn-yellow" onClick="document.getElementById('optionAmount').value= ${max};" >max (${max})</button>`;
         }
         html = html + "<div>";
         Swal.fire({
@@ -84,8 +84,12 @@ export function promptOptionAmount(title, max) {
             showCancelButton: true,
             preConfirm: () => {
                 const optionAmount = Swal.getPopup().querySelector('#optionAmount').value;
-                if (!parseInt(optionAmount)) {
-                    Swal.showValidationMessage(`The option amount is invalid`);
+                console.log("optionAmount", optionAmount, Number.isInteger(optionAmount))
+                if (!parseInt(optionAmount) || parseInt(optionAmount) < 0) {
+                    Swal.showValidationMessage(`The token amount is invalid`);
+                }
+                if (parseInt(optionAmount) > max) {
+                    Swal.showValidationMessage(`Not enough token to sell`);
                 }
                 return { optionAmount: parseInt(optionAmount) };
             }

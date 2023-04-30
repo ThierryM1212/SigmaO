@@ -170,7 +170,7 @@ export async function searchUnspentBoxes(address, tokens, registers = {}, limit 
         searchParam['registers'] = registers;
     }
     const res = await post(explorerApiV1 + `/boxes/unspent/search?limit=${limit}`, searchParam);
-    console.log("searchUnspentBoxes", res);
+    //console.log("searchUnspentBoxes", res);
     if (res.result) {
         return res.data.items;
     } else {
@@ -197,19 +197,17 @@ export async function searchBoxes(address, tokens, registers = {}, limit = 50) {
 }
 
 export async function searchUnspentBoxesUpdated(address, tokens, registers = {}, limit = 50) {
-    const currentBlobBoxes = await searchUnspentBoxes(address, tokens, registers, limit);
-    const [spentBlobs, newBlobs] = await getSpentAndUnspentBoxesFromMempool(address);
-    const spentBlobBoxIds = spentBlobs.map(box => box.boxId);
-    console.log("searchUnspentBoxesUpdated", newBlobs
-        .concat(currentBlobBoxes));
-    var updatedBlobBoxes = newBlobs
-        .concat(currentBlobBoxes)
+    const currentBoxes = await searchUnspentBoxes(address, tokens, registers, limit);
+    const [spentBoxes, newBoxes] = await getSpentAndUnspentBoxesFromMempool(address);
+    const spentBoxesBoxIds = spentBoxes.map(box => box.boxId);
+    var updatedBoxes = newBoxes
+        .concat(currentBoxes)
         .filter(box => box.address === address)
-        .filter(box => !spentBlobBoxIds.includes(box.boxId));
+        .filter(box => !spentBoxesBoxIds.includes(box.boxId));
     for (const register of Object.keys(registers)) {
-        updatedBlobBoxes = updatedBlobBoxes.filter(box => box.additionalRegisters[register].renderedValue === registers[register])
+        updatedBoxes = updatedBoxes.filter(box => box.additionalRegisters[register].renderedValue === registers[register])
     }
-    return updatedBlobBoxes;
+    return updatedBoxes;
 }
 
 export async function getExplorerBlockHeaders() {
@@ -221,7 +219,7 @@ export async function getExplorerBlockHeadersFull() {
 
 export async function getBalanceForAddress(addr) {
     const res = await getRequestV1(`/addresses/${addr}/balance/total`, SHORT_CACHE);
-    console.log("getBalanceUnconfirmedForAddress", res)
+    //console.log("getBalanceUnconfirmedForAddress", res)
     return res.data;
 }
 
@@ -265,10 +263,16 @@ export async function getTokenInfo(tokenId) {
     return res.data;
 }
 
-export async function getTokenBox(addr) {
-    const res = await getRequest(`/assets/${addr}/issuingBox`);
-    console.log(res);
-    return res.data[0];
+export async function getTokenBox(tokenId) {
+    if (tokenId !== "") {
+        const res = await getRequest(`/assets/${tokenId}/issuingBox`);
+        //console.log("getTokenBox", tokenId, res);
+        return res.data[0];
+    } else {
+        console.log("getTokenBox not found tokenId", tokenId);
+        return;
+    }
+
 }
 
 export async function getTokensForAddress(address) {

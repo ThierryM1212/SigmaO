@@ -61,11 +61,11 @@ export default class BuyTokensPage extends React.Component {
 
     async fetchSellTokenRequests() {
         const sellTokenBoxes = await getUnspentBoxesForAddressUpdated(SELL_FIXED_SCRIPT_ADDRESS);
-        console.log(sellTokenBoxes);
+        //console.log(sellTokenBoxes);
         const sellTokenRequests = await Promise.all(
             sellTokenBoxes.map(async (b) => await SellTokenRequest.create(b))
         );
-        console.log(sellTokenRequests);
+        //console.log(sellTokenRequests);
         this.setState({ sellTokenRequestsList: sellTokenRequests });
     }
 
@@ -81,7 +81,7 @@ export default class BuyTokensPage extends React.Component {
                 TX_FEE,
                 DAPP_UI_FEE
             );
-
+            console.log("mintBuyToken txId", txId);
         } else {
             errorAlert("Current token " + this.state.tokenId + " not found !")
         }
@@ -109,7 +109,7 @@ export default class BuyTokensPage extends React.Component {
         const tokensList = this.state.walletTokens.map(u_tok => { return { value: u_tok.tokenId, label: u_tok.name } });
         const currentToken = this.state.currentToken;
         const currentTokenPrice = this.state.AMMPrices.find(t => t.tokenId === this.state.tokenId)?.price ?? 0;
-        console.log("currentTokenPrice", currentTokenPrice, this.state.AMMPrices)
+        //console.log("currentTokenPrice", currentTokenPrice, this.state.AMMPrices)
         const currentTokenDecimalFactor = Math.pow(10, currentToken?.decimals) ?? 1;
         return (
             <div className="w-100 m-1 p-1">

@@ -57,7 +57,7 @@ export default class SellTokenPage extends React.Component {
         const buyTokenRequests = await Promise.all(
             buyTokenBoxes.map(async box => { return await BuyTokenRequest.create(box) })
         );
-        console.log("fetchBuyTokenRequests", buyTokenRequests);
+        //console.log("fetchBuyTokenRequests", buyTokenRequests);
         this.setState({ buyTokenRequests: buyTokenRequests })
     }
 

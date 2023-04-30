@@ -35,7 +35,7 @@ export class SellTokenRequest {
         this.txFee = sellParams[2];
         this.sellRequestValue = this.full.value;
         if (this.full.assets.length > 0) {
-            console.log("this.full.assets[0]", this.full.assets[0])
+            //console.log("this.full.assets[0]", this.full.assets[0])
             this.tokenId = this.full.assets[0].tokenId;
             this.tokenAmount = this.full.assets[0].amount;
             this.tokenInfo = await getTokenInfo(this.tokenId);
