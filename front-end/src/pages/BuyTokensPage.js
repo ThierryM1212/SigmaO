@@ -8,7 +8,7 @@ import { errorAlert } from '../utils/Alerts';
 import { Table } from 'react-bootstrap';
 import ThemedSelect from '../components/ThemedSelect';
 import { formatERGAmount } from '../utils/utils';
-import { NANOERG_TO_ERG, TX_FEE } from '../utils/constants';
+import { DAPP_UI_FEE, NANOERG_TO_ERG, TX_FEE } from '../utils/constants';
 import { createTokenBuyRequest } from '../actions/BuyRequestActions';
 import HelpToolTip from '../components/HelpToolTip';
 import helpIcon from '../images/help_outline_blue_48dp.png';
@@ -61,25 +61,27 @@ export default class BuyTokensPage extends React.Component {
 
     async fetchSellTokenRequests() {
         const sellTokenBoxes = await getUnspentBoxesForAddressUpdated(SELL_FIXED_SCRIPT_ADDRESS);
-        console.log(sellTokenBoxes);
+        //console.log(sellTokenBoxes);
         const sellTokenRequests = await Promise.all(
             sellTokenBoxes.map(async (b) => await SellTokenRequest.create(b))
         );
-        console.log(sellTokenRequests);
+        //console.log(sellTokenRequests);
         this.setState({ sellTokenRequestsList: sellTokenRequests });
     }
 
     async mintBuyToken() {
         if (this.state.currentToken) {
-            console.log("mintBuyToken", this.state.tokenId,
-                this.state.tokenAmount,
-                Math.round(this.state.tokenPrice / Math.pow(10, this.state.currentToken.decimals)
-                ));
+            //console.log("mintBuyToken", this.state.tokenId,
+            //this.state.tokenAmount,
+            //Math.round(this.state.tokenPrice / Math.pow(10, this.state.currentToken.decimals)));
             const txId = await createTokenBuyRequest(
                 this.state.tokenId,
                 this.state.tokenAmount,
-                Math.round(this.state.tokenPrice / Math.pow(10, this.state.currentToken.decimals))
+                Math.round(this.state.tokenPrice / Math.pow(10, this.state.currentToken.decimals)),
+                TX_FEE,
+                DAPP_UI_FEE
             );
+            console.log("mintBuyToken txId", txId);
         } else {
             errorAlert("Current token " + this.state.tokenId + " not found !")
         }
@@ -107,7 +109,7 @@ export default class BuyTokensPage extends React.Component {
         const tokensList = this.state.walletTokens.map(u_tok => { return { value: u_tok.tokenId, label: u_tok.name } });
         const currentToken = this.state.currentToken;
         const currentTokenPrice = this.state.AMMPrices.find(t => t.tokenId === this.state.tokenId)?.price ?? 0;
-        console.log("currentTokenPrice", currentTokenPrice, this.state.AMMPrices)
+        //console.log("currentTokenPrice", currentTokenPrice, this.state.AMMPrices)
         const currentTokenDecimalFactor = Math.pow(10, currentToken?.decimals) ?? 1;
         return (
             <div className="w-100 m-1 p-1">

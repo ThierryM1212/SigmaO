@@ -17,6 +17,7 @@ import { getAMMPrices } from '../ergo-related/amm';
 import TokenPriceAmount from '../components/TokenPriceAmount';
 import HelpToolTip from '../components/HelpToolTip';
 import helpIcon from '../images/help_outline_blue_48dp.png';
+import { TX_FEE } from '../utils/constants';
 
 /* global BigInt */
 
@@ -34,15 +35,15 @@ export default class TokenMarketPage extends React.Component {
         this.fetchTokenMarket = this.fetchTokenMarket.bind(this);
     }
 
-    async buyToken(tokenId, maxAmount, tokenPrice) {
+    async buyToken(tokenId, maxAmount, tokenPrice, txFee, dAppUIFee) {
         const tokenAmount = await promptOptionAmount("Amount of tokens to buy", maxAmount);
-        const txId = await createTokenBuyRequest(tokenId, tokenAmount, tokenPrice);
+        const txId = await createTokenBuyRequest(tokenId, tokenAmount, tokenPrice, txFee, dAppUIFee);
         console.log("buyToken txId", txId);
     }
 
     async sellToken(tokenId, tokenAmount, tokenPrice) {
-        console.log("sellToken", tokenId, tokenAmount, tokenPrice);
-        const txId = await createTokenSellRequest(tokenId, tokenAmount, tokenPrice);
+        //console.log("sellToken", tokenId, tokenAmount, tokenPrice);
+        const txId = await createTokenSellRequest(tokenId, tokenAmount, tokenPrice, TX_FEE);
         console.log("sellToken txId", txId);
     }
 
@@ -155,7 +156,7 @@ export default class TokenMarketPage extends React.Component {
                     </button>
                     <div></div>
                 </div>
-                <br/>
+                <br />
                 <div className='w-100 zonemint m-1 p-1'>
                     {
                         this.state.tokenRequests ?
@@ -251,7 +252,12 @@ export default class TokenMarketPage extends React.Component {
                                                                         tokenAmount={str.tokenAmount}
                                                                         tokenDecimalFactor={tokenDecimalFactor} />
                                                                     <button className='btn btn-blue m-1 p-1'
-                                                                        onClick={() => this.buyToken(tokenId, str.tokenAmount / tokenDecimalFactor, str.tokenPrice)}>
+                                                                        onClick={() => this.buyToken(tokenId,
+                                                                            str.tokenAmount / tokenDecimalFactor,
+                                                                            str.tokenPrice,
+                                                                            str.txFee,
+                                                                            str.dAppUIFee
+                                                                        )}>
                                                                         Buy
                                                                     </button>
                                                                 </div>

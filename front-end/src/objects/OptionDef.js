@@ -76,7 +76,7 @@ export class OptionDef {
     getIntrinsicPrice(oraclePrice) {
         const underlyingToken = UNDERLYING_TOKENS.find(t => t.tokenId === this.underlyingTokenId);
         if (underlyingToken) {
-            console.log("getIntrinsicPrice", oraclePrice, this.strikePrice, this.shareSize)
+            //console.log("getIntrinsicPrice", oraclePrice, this.strikePrice, this.shareSize)
             if (this.optionType === 0) { // Call
                 return Math.max(0, (oraclePrice - this.strikePrice * Math.pow(10, underlyingToken.decimals)) * this.shareSize);
             } else {

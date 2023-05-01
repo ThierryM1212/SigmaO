@@ -3,6 +3,7 @@ import { createTokenSellRequest, refundBuyRequest } from '../actions/BuyRequestA
 import { formatERGAmount } from '../utils/utils';
 import AddressLink from './AddressLink';
 import TokenLink from './TokenLink';
+import { TX_FEE } from '../utils/constants';
 
 
 async function refund(box) {
@@ -12,13 +13,13 @@ async function refund(box) {
 
 async function sellToken(tokenId, tokenAmount, tokenPrice) {
     console.log("sellToken", tokenId, tokenAmount, tokenPrice);
-    const txId = await createTokenSellRequest(tokenId, tokenAmount, tokenPrice);
+    const txId = await createTokenSellRequest(tokenId, tokenAmount, tokenPrice, TX_FEE);
     console.log("sellToken txId", txId);
 }
 
 export default function BuyTokenCard(props) {
     const address = localStorage.getItem('address') ?? '';
-    console.log("BuyTokenCard", props);
+    //console.log("BuyTokenCard", props);
     const buyTokenRequest = props.buyTokenRequest;
     const tokenInfo = buyTokenRequest?.tokenInfo;
     const tokenDecimalFactor = Math.pow(10, tokenInfo?.decimals ?? 0);

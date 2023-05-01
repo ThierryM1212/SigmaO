@@ -198,27 +198,27 @@ export async function searchUnspentBoxes(address, tokens, registers = {}) {
         //console.log("res", res)
         return res.data.items;
     } catch (e) {
-        console.log("searchUnspentBoxes", e);
+        console.log("searchUnspentBoxes exception", e);
         return [];
     }
 }
 
 export async function searchUnspentBoxesUpdated(address, tokens, registers = {}) {
     try {
-        const currentBlobBoxes = await searchUnspentBoxes(address, tokens, registers) ?? [];
-        const [spentBlobs, newBlobs] = await getSpentAndUnspentBoxesFromMempool(address);
-        const spentBlobBoxIds = spentBlobs.map(box => box.boxId);
-        var updatedBlobBoxes = newBlobs
-            .concat(currentBlobBoxes)
+        const currentBoxes = await searchUnspentBoxes(address, tokens, registers) ?? [];
+        const [spentBoxes, newBoxes] = await getSpentAndUnspentBoxesFromMempool(address);
+        const spentBoxesBoxIds = spentBoxes.map(box => box.boxId);
+        var updatedBoxes = newBoxes
+            .concat(currentBoxes)
             .filter(box => box.address === address)
-            .filter(box => !spentBlobBoxIds.includes(box.boxId));
+            .filter(box => !spentBoxesBoxIds.includes(box.boxId));
 
         for (const register of Object.keys(registers)) {
-            updatedBlobBoxes = updatedBlobBoxes.filter(box => box.additionalRegisters[register].renderedValue === registers[register])
+            updatedBoxes = updatedBoxes.filter(box => box.additionalRegisters[register].renderedValue === registers[register])
         }
-        return updatedBlobBoxes;
+        return updatedBoxes;
     } catch (e) {
-        console.log("searchUnspentBoxesUpdated", e);
+        console.error("searchUnspentBoxesUpdated exception", e);
         return [];
     }
 }

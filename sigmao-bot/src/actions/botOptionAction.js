@@ -444,18 +444,39 @@ export async function processBuyRequest(buyRequest) {
         const sellTokenRequests = await Promise.all(
             sellTokenBoxes.map(async b => SellTokenRequest.create(b))
         );
-        console.log("sellTokenRequests", sellTokenRequests)
-        const validSellTokenRequests = sellTokenRequests.filter(str => str.tokenAmount >= tokenBuyAmount &&
-            str.tokenPrice * str.tokenAmount >= buyRequest.full.value - TX_FEE - MIN_NANOERG_BOX_VALUE);
-        console.log("validSellTokenRequests", validSellTokenRequests)
+        //console.log("sellTokenRequests", sellTokenRequests)
+        //console.log("buyRequest", buyRequest)
+        //console.log("token sellable Amount", tokenBuyAmount)
+        var validSellTokenRequests = [];
+        for (const str of sellTokenRequests) {
+            if (str.tokenAmount >= tokenBuyAmount) {
+                const minPrice = str.tokenPrice * tokenBuyAmount * (1 + str.dAppUIFee / 1000);
+                const availableAmounttoBuy = buyRequest.full.value - str.txFee - MIN_NANOERG_BOX_VALUE;
+                //console.log ("minPrice", minPrice)
+                //console.log ("availableAmounttoBuy", availableAmounttoBuy)
+                if (minPrice <= availableAmounttoBuy) {
+                    validSellTokenRequests.push(str);
+                }
+
+            } else {
+                console.log("not enough token to sell ", str.tokenAmount , "<", tokenBuyAmount)
+            }
+        }
+        //const validSellTokenRequests = sellTokenRequests.filter(str => str.tokenAmount >= tokenBuyAmount &&
+        //    str.tokenPrice * tokenBuyAmount * (1 + str.dAppUIFee / 1000) <= buyRequest.full.value - str.txFee - MIN_NANOERG_BOX_VALUE);
+        //console.log("validSellTokenRequests", validSellTokenRequests)
+
         if (validSellTokenRequests.length > 0) {
 
             const utxos = [validSellTokenRequests[0].full, buyRequest.full];
+            const txFee = validSellTokenRequests[0].txFee;
             console.log("SELL request found for " + buyRequest.full.boxId);
             const reserveBoxWASM = (await ergolib).ErgoBox.from_json(JSONBigInt.stringify(validSellTokenRequests[0].full));
 
-            const totalPrice = Math.max(MIN_NANOERG_BOX_VALUE, validSellTokenRequests[0].tokenPrice * tokenBuyAmount);
-            const tokenDeliveryBoxValue = parseInt(initialBuyRequestValue) - TX_FEE - totalPrice;
+            const minPrice = Math.max(MIN_NANOERG_BOX_VALUE, validSellTokenRequests[0].tokenPrice * tokenBuyAmount);
+            const dAppUIFee = Math.max(MIN_NANOERG_BOX_VALUE, Math.ceil(validSellTokenRequests[0].tokenPrice * tokenBuyAmount * validSellTokenRequests[0].dAppUIFee / 1000));
+
+            const tokenDeliveryBoxValue = parseInt(initialBuyRequestValue) - txFee - minPrice - dAppUIFee;
             //console.log("value",initialBuyRequestValue, totalPrice, tokenDeliveryBoxValue);
             const inputsWASM = (await ergolib).ErgoBoxes.from_boxes_json(utxos);
             const dataListWASM = new (await ergolib).ErgoBoxAssetsDataList();
@@ -478,6 +499,7 @@ export async function processBuyRequest(buyRequest) {
             }
             optionReserveBoxBuilder.set_register_value(4, reserveBoxWASM.register_value(4));
             optionReserveBoxBuilder.set_register_value(5, reserveBoxWASM.register_value(5));
+            optionReserveBoxBuilder.set_register_value(6, reserveBoxWASM.register_value(6));
             try {
                 outputCandidates.add(optionReserveBoxBuilder.build());
             } catch (e) {
@@ -503,7 +525,7 @@ export async function processBuyRequest(buyRequest) {
 
             // Issuer pay box
             const issuerPayBoxBuilder = new (await ergolib).ErgoBoxCandidateBuilder(
-                (await ergolib).BoxValue.from_i64((await ergolib).I64.from_str(totalPrice.toString())),
+                (await ergolib).BoxValue.from_i64((await ergolib).I64.from_str(minPrice.toString())),
                 (await ergolib).Contract.pay_to_address((await ergolib).Address.from_base58(validSellTokenRequests[0].sellerAddress)),
                 creationHeight);
             try {
@@ -513,8 +535,20 @@ export async function processBuyRequest(buyRequest) {
                 throw e;
             }
 
-            const tx = await createTransaction(boxSelection, outputCandidates, [], DAPP_UI_ADDRESS, utxos, TX_FEE);
-            console.log("processFixedBuyRequest tx", JSONBigInt.stringify(tx, null, 4));
+            // dApp UI Fee
+            const dApppUIFeeBoxBuilder = new (await ergolib).ErgoBoxCandidateBuilder(
+                (await ergolib).BoxValue.from_i64((await ergolib).I64.from_str(dAppUIFee.toString())),
+                (await ergolib).Contract.pay_to_address((await ergolib).Address.from_base58(validSellTokenRequests[0].dAppUIAddress)),
+                creationHeight);
+            try {
+                outputCandidates.add(dApppUIFeeBoxBuilder.build());
+            } catch (e) {
+                console.log(`building error: ${e}`);
+                throw e;
+            }
+
+            const tx = await createTransaction(boxSelection, outputCandidates, [], DAPP_UI_ADDRESS, utxos, txFee);
+            //console.log("processFixedBuyRequest tx", JSONBigInt.stringify(tx, null, 4));
             const wallet = (await ergolib).Wallet.from_mnemonic("", "");
             const signedTxTmp = await signTransaction(tx, utxos, [], wallet);
             const signedTx = JSONBigInt.parse(signedTxTmp);
@@ -583,24 +617,14 @@ export async function closeSellOption(sellRequest) {
 
 export async function closeEmptySellToken(sellRequest) {
     try {
-        const boxWASM = (await ergolib).ErgoBox.from_json(JSONBigInt.stringify(sellRequest.full));
-
         const inputsWASM = (await ergolib).ErgoBoxes.from_boxes_json([sellRequest.full]);
         const dataListWASM = new (await ergolib).ErgoBoxAssetsDataList();
         const boxSelection = new (await ergolib).BoxSelection(inputsWASM, dataListWASM);
-        const creationHeight = await currentHeight();
         const outputCandidates = (await ergolib).ErgoBoxCandidates.empty();
         //const tokenAmountAdjusted = BigInt(tokAmount * Math.pow(10, tokDecimals)).toString();
-        const refundBoxValue = (await ergolib).BoxValue.from_i64((await ergolib).I64.from_str((sellRequest.full.value - TX_FEE).toString()));
-        const mintBoxBuilder = new (await ergolib).ErgoBoxCandidateBuilder(
-            refundBoxValue,
-            (await ergolib).Contract.pay_to_address((await ergolib).Address.from_base58(DAPP_UI_ADDRESS)),
-            creationHeight);
-        mintBoxBuilder.set_register_value(4, boxWASM.register_value(4));
-        mintBoxBuilder.set_register_value(5, boxWASM.register_value(5));
 
-        var tx = await createTransaction(boxSelection, outputCandidates, [], DAPP_UI_ADDRESS, [sellRequest.full], TX_FEE);
-        //console.log("create option request tx", tx)
+        var tx = await createTransaction(boxSelection, outputCandidates, [], sellRequest.sellerAddress, [sellRequest.full], sellRequest.txFee);
+        //console.log("closeEmptySellToken tx", tx)
         const wallet = (await ergolib).Wallet.from_mnemonic("", "");
         const signedTxTmp = await signTransaction(tx, [sellRequest.full], [], wallet);
         const signedTx = JSONBigInt.parse(signedTxTmp);

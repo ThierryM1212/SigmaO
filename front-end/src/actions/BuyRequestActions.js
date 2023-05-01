@@ -123,7 +123,7 @@ export async function refundSellOption(sellBox) {
     }
 }
 
-export async function createTokenSellRequest(tokenId, tokenAmount, tokenPrice) {
+export async function createTokenSellRequest(tokenId, tokenAmount, tokenPrice, txFee) {
     const address = localStorage.getItem('address') ?? '';
     if (address === '') {
         errorAlert("Set the ERG address to use SigmaO !");
@@ -135,8 +135,9 @@ export async function createTokenSellRequest(tokenId, tokenAmount, tokenPrice) {
         const tokenDecimalFactor = Math.pow(10, tokenInfo.decimals);
         const requiredTokenAmount = tokenAmount * tokenDecimalFactor;
         const priceRaw = Math.round(tokenPrice / tokenDecimalFactor);
-        const reserveValue = MIN_NANOERG_BOX_VALUE + TX_FEE;
-        var utxos = await getUtxos(reserveValue + TX_FEE);
+        const sellParams = [priceRaw, DAPP_UI_FEE, txFee];
+        const reserveValue = MIN_NANOERG_BOX_VALUE + txFee;
+        var utxos = await getUtxos(reserveValue + txFee);
         const utxos1 = await getTokenUtxos(requiredTokenAmount, tokenId);
         utxos = utxos.concat(utxos1).filter((value, index, self) => index === self.findIndex((t) => (
             t.boxId === value.boxId
@@ -160,7 +161,8 @@ export async function createTokenSellRequest(tokenId, tokenAmount, tokenPrice) {
             (await ergolib).TokenAmount.from_i64((await ergolib).I64.from_str(requiredTokenAmount.toString()))
         );
         mintBoxBuilder.set_register_value(4, sellerSigmaProp);
-        mintBoxBuilder.set_register_value(5, await encodeLong(priceRaw.toString()));
+        mintBoxBuilder.set_register_value(5, await encodeLongArray(sellParams.map(x => x.toString())));
+        mintBoxBuilder.set_register_value(6, await encodeHexConst(DAPP_UI_ERGOTREE));
         try {
             outputCandidates.add(mintBoxBuilder.build());
         } catch (e) {
@@ -168,7 +170,7 @@ export async function createTokenSellRequest(tokenId, tokenAmount, tokenPrice) {
             throw e;
         }
 
-        var tx = await createTransaction(boxSelection, outputCandidates, [], address, utxos, TX_FEE);
+        var tx = await createTransaction(boxSelection, outputCandidates, [], address, utxos, txFee);
         console.log("create but option request tx", tx)
         const txId = await walletSignTx(alert, tx, address);
         return txId;
@@ -178,7 +180,8 @@ export async function createTokenSellRequest(tokenId, tokenAmount, tokenPrice) {
     }
 }
 
-export async function createTokenBuyRequest(tokenId, tokenAmount, tokenPrice) {
+export async function createTokenBuyRequest(tokenId, tokenAmount, tokenPrice, txFee, dAppUIFeePerThousands) {
+    console.log("createTokenBuyRequest", tokenId, tokenAmount, tokenPrice, txFee, dAppUIFeePerThousands)
     const address = localStorage.getItem('address') ?? '';
     if (address === '') {
         errorAlert("Set the ERG address to use SigmaO !");
@@ -190,8 +193,11 @@ export async function createTokenBuyRequest(tokenId, tokenAmount, tokenPrice) {
         const tokenDecimalFactor = Math.pow(10, tokenInfo.decimals);
         const tokenAmountRaw = tokenAmount * tokenDecimalFactor;
         const requiredReserveAmount = tokenAmountRaw * tokenPrice;
-        const reserveValue = MIN_NANOERG_BOX_VALUE + TX_FEE + requiredReserveAmount;
-        var utxos = await getUtxos(reserveValue + TX_FEE);
+        const dAppUIFeeTx = Math.max(MIN_NANOERG_BOX_VALUE, Math.ceil(requiredReserveAmount * dAppUIFeePerThousands / 1000))
+        //console.log("reserveValue0", MIN_NANOERG_BOX_VALUE , txFee , requiredReserveAmount , dAppUIFeeTx);
+        const reserveValue = MIN_NANOERG_BOX_VALUE + txFee + requiredReserveAmount + dAppUIFeeTx;
+        //console.log("reserveValue", reserveValue, txFee);
+        var utxos = await getUtxos(reserveValue + txFee);
 
         const inputsWASM = (await ergolib).ErgoBoxes.from_boxes_json(utxos);
         const dataListWASM = new (await ergolib).ErgoBoxAssetsDataList();
@@ -216,7 +222,7 @@ export async function createTokenBuyRequest(tokenId, tokenAmount, tokenPrice) {
             throw e;
         }
 
-        var tx = await createTransaction(boxSelection, outputCandidates, [], address, utxos, TX_FEE);
+        var tx = await createTransaction(boxSelection, outputCandidates, [], address, utxos, txFee);
         console.log("create but option request tx", tx)
         const txId = await walletSignTx(alert, tx, address);
         return txId;

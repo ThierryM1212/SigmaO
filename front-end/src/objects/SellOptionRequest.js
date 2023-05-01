@@ -61,7 +61,7 @@ export class SellOptionRequest {
             this.currentOptionPrice = getOptionPrice(optionDef.optionType, optionDef.optionStyle, (new Date()).valueOf(), optionDef.maturityDate, this.currentOraclePrice, 
                 optionDef.strikePrice * Math.pow(10, underlyingToken.decimals), optionDef.shareSize, this.sigma, this.K1, this.K2);
         }
-        console.log("SellOptionRequest initialize", this)
+        //console.log("SellOptionRequest initialize", this)
     }
 
     static async create(boxJSON) {

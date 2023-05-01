@@ -39,7 +39,7 @@ export class Option {
                 const amountERGreserve = this.full.value - this.optionDef.txFee - MIN_NANOERG_BOX_VALUE;
                 this.exercibleOptionAmount = amountERGreserve / (this.optionDef.strikePrice * this.optionDef.shareSize * Math.pow(10, this.optionDef.underlyingTokenInfo.decimals))
             }
-            console.log("exercibleOptionAmount ", this.exercibleOptionAmount)
+            //console.log("exercibleOptionAmount ", this.exercibleOptionAmount)
         }
         if (this.optionDef.optionType === 0) { // Call
             if (this.full.assets.length === 1) {
@@ -50,7 +50,7 @@ export class Option {
                 this.isEmpty = true;
             }
         }
-        console.log("initialize", this)
+        //console.log("initialize", this)
     }
 
     static async create(boxJSON) {

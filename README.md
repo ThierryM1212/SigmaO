@@ -66,7 +66,7 @@ An open buy order makes the box spendable by someone providing the right amount 
 
 A buy order is also refundable at any time for the issuer.
 
-It does not support partial buy and the required token amount needs to be provided.
+It does not support partial buy and the exact required token amount needs to be provided.
 
 It can be used by any smart contract to sell an amount of token (EIP-4) to the buy order issuer.
 
@@ -89,10 +89,16 @@ A sell order is also refundable at any time for the issuer.
 
 It supports partial sell.
 
+A configurable dApp UI Fee and the transaction miner fee are configurable in the contract parameters.
+
 It can be used by any smart contract to buy an amount of token (EIP-4) to the sell order issuer.
 
     Parameters:
     - amount of tokens to sell
     - seller address
     - token price (nanoerg per smallest unit of token)
+    - dApp UI fee
+    - dApp UI address
+    - transaction miner fee
+
 

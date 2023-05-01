@@ -22,7 +22,7 @@ async function refund(box) {
 
 export default function SellOptionCard(props) {
     const address = localStorage.getItem('address') ?? '';
-    console.log("SellOptionCard", props);
+    //console.log("SellOptionCard", props);
     const sellOptionRequest = props.sellOptionRequest;
     const optionDef = sellOptionRequest.option.optionDef;
     var oraclePrice = sellOptionRequest.currentOraclePrice;
@@ -30,7 +30,7 @@ export default function SellOptionCard(props) {
     const optionPrice = getOptionPrice(optionDef.optionType, optionDef.optionStyle, (new Date()).valueOf(), optionDef.maturityDate,
         oraclePrice, optionDef.strikePrice * Math.pow(10, underlyingTokenInfo.decimals), optionDef.shareSize, sellOptionRequest.sigma, sellOptionRequest.K1, sellOptionRequest.K2);
 
-    console.log("SellOptionCard", props);
+    //console.log("SellOptionCard", props);
     const availableOptionAmount = sellOptionRequest.optionAmount / Math.pow(10, underlyingTokenInfo.decimals);
     return (
         <Fragment>
