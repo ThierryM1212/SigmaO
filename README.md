@@ -102,3 +102,7 @@ It can be used by any smart contract to buy an amount of token (EIP-4) to the se
     - transaction miner fee
 
 
+## Project structure
+    - contract: build the contracts for SigmaO and generates a "script_constants.js" file for the bot and the front-end
+    - front-end: React app to interact with the contracts
+    - sigmao-bot: off-chain bot to process the off-chain transactions
