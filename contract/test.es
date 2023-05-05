@@ -1,7 +1,0 @@
-{   
-
-    sigmaProp(false)
-
-}  
-
-
