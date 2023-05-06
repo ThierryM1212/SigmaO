@@ -7,7 +7,7 @@ export default function SellTokenList(props) {
             {
                 props.sellTokenRequestsList ?
                 props.sellTokenRequestsList.length > 0 ?
-                <div className='d-flex flex-wrap m-2 p-2 zonemint justify-content-center'>
+                <div className='d-flex flex-wrap m-2 p-2 justify-content-center'>
                     {
                         props.sellTokenRequestsList.map(str =>
                             <SellTokenCard key={str.full.boxId}
