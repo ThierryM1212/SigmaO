@@ -11,7 +11,7 @@ const TOKENS = [
         name: "SigRSV",
         tokenId: "003bd19d0187117f130b62e1bcab0939929ff5c7709f843c5c4dd158949285d0",
         decimals: 0,
-        oracleTokenId: "011d3364de07e5a26f0c4eef0852cddb387039a921b7154ef3cab22c6eda887f",
+        oracleTokenId: "1d5afc59838920bb5ef2a8f9d63825a55b1d48e269d7cecee335d637c3ff5f3f",
         oracleType: "Spectrum LP",
         icon: "sigrsv.svg",
     },
