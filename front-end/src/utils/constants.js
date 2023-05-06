@@ -16,6 +16,7 @@ export const DEFAULT_OPTION_DURATION = 30; // days
 export const MAX_UI_OPTION_DURATION = 90; // days
 
 export const TOKENJAY_SALES_URL = "https://tokenjay.app/app/#sales";
+export const AUCTIONHOUSE_URL = "https://ergoauctions.org/";
 
 export const OPTION_TYPES = [
     {
