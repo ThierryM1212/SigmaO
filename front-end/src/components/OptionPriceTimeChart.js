@@ -4,7 +4,7 @@ import { Chart, registerables } from 'chart.js';
 import 'chartjs-adapter-date-fns';
 import { enGB } from 'date-fns/locale';
 import { Line } from 'react-chartjs-2';
-import { formatERGAmount, getOptionPrice, getOptionPriceBS, getOptionPriceTree } from '../utils/utils';
+import { formatERGAmount, getOptionPrice, getOptionPriceBS } from '../utils/utils';
 import { OPTION_STYLES, OPTION_TYPES } from '../utils/constants';
 
 Chart.register(...registerables);

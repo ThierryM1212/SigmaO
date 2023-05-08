@@ -2,8 +2,6 @@ import React from 'react';
 import { getUnspentBoxesForAddressUpdated, searchUnspentBoxes } from '../ergo-related/explorer';
 import { SellOptionRequest } from '../objects/SellOptionRequest';
 import { UNDERLYING_TOKENS } from '../utils/script_constants';
-import { getAMMPrices } from '../ergo-related/amm';
-import { NANOERG_TO_ERG } from '../utils/constants';
 import SellOptionList from '../components/SellOptionList';
 
 

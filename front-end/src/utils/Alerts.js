@@ -2,6 +2,7 @@ import Swal from 'sweetalert2/src/sweetalert2.js';
 import withReactContent from 'sweetalert2-react-content';
 import { formatLongString } from './utils';
 import { encodeContract } from '../ergo-related/serializer';
+import { disconnectWallet } from '../ergo-related/wallet';
 
 export function waitingAlert(title) {
     const MySwal = withReactContent(Swal)
@@ -54,7 +55,7 @@ export function displayErgoPayTransaction(txId, reducedTx) {
         allowOutsideClick: true,
         icon: 'success',
         showConfirmButton: true,
-        html: <div><p>Send the transaction to wallet </p>
+        html: <div className='align-center'><p>Send the transaction to the wallet </p>
             <button className='btn btn-blue m-1' onClick={() => {
                 const url = `ergopay:${reducedTx}`;
                 window.open(url, '_blank').focus();
@@ -71,7 +72,7 @@ export function displayErgoPayTransaction(txId, reducedTx) {
 
 export function promptOptionAmount(title, max) {
     return new Promise(function (resolve, reject) {
-        var html = "<div>"
+        var html = "<div class='align-center'>"
         html = html + '<input type="text" id="optionAmount" class="swal2-input" placeholder="Token amount" autocomplete="off">'
         if (max) {
             html = html + `<button class="btn-yellow" onClick="document.getElementById('optionAmount').value= ${max};" >max (${max})</button>`;
@@ -107,7 +108,7 @@ export function promptErgAddr() {
     return new Promise(function (resolve, reject) {
         Swal.fire({
             title: "Set ERG address",
-            html: `<div><input type="text" id="ergAddress" class="swal2-input" placeholder="ERG address"></div>`,
+            html: `<div class='align-center'><input type="text" size=53 id="ergAddress" class="swal2-input" placeholder="ERG address"></div>`,
             focusConfirm: false,
             showCancelButton: true,
             showConfirmButton: true,
@@ -145,6 +146,8 @@ export function promptErgAddrList(addrList) {
             focusConfirm: false,
             showCancelButton: true,
             showConfirmButton: true,
+            showDenyButton: addrList.length > 0,
+            denyButtonText: `Disconnect`,
             customClass: {
                 input: "monotype",
             },
@@ -158,8 +161,15 @@ export function promptErgAddrList(addrList) {
                 })
             }
         }).then(function (result) {
-            if (result.value) {
-                resolve(result.value);
+            if (result.isConfirmed) {
+                if (result.value) {
+                    resolve(result.value);
+                } else {
+                    reject();
+                }
+            } else if (result.isDenied) {
+                console.log("result.isDenied")
+                disconnectWallet().then(resolve(''));
             } else {
                 reject();
             }

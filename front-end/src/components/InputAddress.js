@@ -1,5 +1,5 @@
 import React from 'react';
-import { getBalance, getWalletAddressList, isValidWalletAddress } from '../ergo-related/wallet';
+import { connectWallet, getBalance, getWalletAddressList, isValidWalletAddress, isWalletConnected } from '../ergo-related/wallet';
 import { promptErgAddr, promptErgAddrList } from "../utils/Alerts"
 import { formatERGAmount, formatLongString, sleep } from '../utils/utils';
 import ergoLogo from "../images/ergo-erg-logo.png";
@@ -10,8 +10,6 @@ export default class InputAddress extends React.Component {
         super(props);
         this.state = {
             ergAmount: 0,
-            oatmealAmount: 0,
-            spicyOatmealAmount: 0,
             ergopay: false,
         };
         this.setAddress = this.setAddress.bind(this);
@@ -27,15 +25,21 @@ export default class InputAddress extends React.Component {
     };
 
     async promptErgAddress() {
+        var walletConnected = await isWalletConnected();
+        if (!walletConnected) {
+            walletConnected = await connectWallet();
+        }
         const addrList = await getWalletAddressList();
         var newAddr = '';
         if (addrList.length > 0) {
             newAddr = await promptErgAddrList(addrList);
         } else {
-            newAddr = await promptErgAddr();
+            if (walletConnected) {
+                newAddr = await promptErgAddr();
+            }
         }
-
-        if (newAddr) {
+        //console.log("promptErgAddress", "*"+newAddr+"*")
+        if (newAddr || newAddr === '' ) {
             this.setAddress(newAddr)
         }
     }

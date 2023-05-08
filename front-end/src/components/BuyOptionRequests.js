@@ -8,8 +8,6 @@ import { BUY_TOKEN_REQUEST_SCRIPT_ADDRESS } from '../utils/script_constants';
 import { displayTransaction } from '../utils/Alerts';
 import { processBuyRequest } from '../actions/botOptionAction';
 
-/* global BigInt */
-
 
 export default class BuyOptionRequests extends React.Component {
     constructor(props) {

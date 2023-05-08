@@ -62,7 +62,10 @@ h6 h5 {
 }
 
 @import 'sweetalert2/dist/sweetalert2.css';
-@import '@sweetalert2/theme-dark/dark.css';
+@import '@sweetalert2/theme-wordpress-admin/wordpress-admin.css';
+.align-center {
+  text-align: center;
+}
 
 @media (max-width: 600px) {
   .hidden-mobile {
@@ -216,4 +219,32 @@ main{ flex:1; }
   to {
     transform: rotate(359deg);
   }
+}
+
+
+.glowing {
+  -webkit-animation: glowing 1500ms infinite;
+  -moz-animation: glowing 1500ms infinite;
+  -o-animation: glowing 1500ms infinite;
+  animation: glowing 1500ms infinite;
+}
+@-webkit-keyframes glowing {
+  0% { -webkit-box-shadow: 0 0 3px var(--my-bg-yellow); }
+  50% { -webkit-box-shadow: 0 0 20px var(--my-bg-yellow); }
+  100% { -webkit-box-shadow: 0 0 3px var(--my-bg-yellow); }
+}
+@-moz-keyframes glowing {
+  0% { -moz-box-shadow: 0 0 3px var(--my-bg-yellow); }
+  50% { -moz-box-shadow: 0 0 20px var(--my-bg-yellow); }
+  100% { -moz-box-shadow: 0 0 3px var(--my-bg-yellow); }
+}
+@-o-keyframes glowing {
+  0% { box-shadow: 0 0 3px var(--my-bg-yellow);}
+  50% { box-shadow: 0 0 20px var(--my-bg-yellow); }
+  100% { box-shadow: 0 0 3px var(--my-bg-yellow); }
+}
+@keyframes glowing {
+  0% { box-shadow: 0 0 3px var(--my-bg-yellow);}
+  50% { box-shadow: 0 0 20px var(--my-bg-yellow); }
+  100% { box-shadow: 0 0 3px var(--my-bg-yellow); }
 }

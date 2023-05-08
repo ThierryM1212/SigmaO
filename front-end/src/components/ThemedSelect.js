@@ -124,7 +124,7 @@ export default function ThemedSelect(props) {
             minWidth: "50px",
         }),
       };
-
+      //console.log("props.options",props.options)
     return (
         <Fragment>
             <Select id={props.id}
@@ -137,6 +137,8 @@ export default function ThemedSelect(props) {
                 options={props.options}
                 isSearchable={false}
                 isMulti={false}
+                //isDisabled={props.options.length === 0}
+                noOptionsMessage={() => props.noOptionMsg ?? 'empty'}
                 theme={theme => ({
                     ...theme,
                     colors: {

@@ -27,7 +27,6 @@ export async function isWalletConnected() {
     if (hasExtensionConnector()) {
         try {
             const res = await window.ergo_check_read_access();
-            //console.log("isWalletConnected", res)
             return Promise.resolve(res);
         } catch (e) {
             console.error("isWalletConnected error", e);
@@ -49,6 +48,13 @@ export async function connectWallet() {
                 await sleep(100)
                 const res = await window.ergo_request_read_access();
                 await sleep(100); // need to fix SAFEW to remove this wait...
+                if (res) {
+                    const currentAddress = localStorage.getItem('address') ?? '';
+                    const walletAddressList = await getWalletAddressList();
+                    if (currentAddress === '' && walletAddressList && walletAddressList.length > 0) {
+                        localStorage.setItem('address', walletAddressList[0])
+                    }
+                }
                 return res
             } else {
                 return true;
@@ -64,10 +70,26 @@ export async function connectWallet() {
 
 }
 
+export async function disconnectWallet() {
+    //console.log("disconnectWallet");
+    if (typeof window.ergoConnector !== 'undefined') {
+        if (typeof window.ergoConnector.safew !== 'undefined') {
+            return await window.ergoConnector.safew.disconnect();
+        }
+        if (typeof window.ergoConnector.nautilus !== 'undefined') {
+            return await window.ergoConnector.nautilus.disconnect();
+        }
+        return false;
+    } else {
+        return true;
+    }
+}
+
 // Check the address is in the connected wallet
 export async function isValidWalletAddress(address) {
+    //console.log("isValidWalletAddress", address);
     if (hasExtensionConnector()) {
-        const walletConnected = await connectWallet();
+        const walletConnected = await isWalletConnected();
         if (walletConnected && hasConnectorInjected()) {
             const address_list = await ergo.get_used_addresses();
             return address_list.includes(address);
@@ -80,8 +102,9 @@ export async function isValidWalletAddress(address) {
 }
 
 export async function getWalletAddressList() {
+    //console.log("getWalletAddressList");
     if (hasExtensionConnector()) {
-        const walletConnected = await connectWallet();
+        const walletConnected = await isWalletConnected();
         if (walletConnected && hasConnectorInjected()) {
             const address_list = await ergo.get_used_addresses();
             return address_list;

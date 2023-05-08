@@ -24,13 +24,12 @@ const optionsStyles = OPTION_STYLES.map(opt_style => { return { value: opt_style
 const now = new Date(new Date().toDateString());
 var initMaturityDate = new Date(new Date().toDateString());
 
-Date.prototype.addDays = function (days) {
+Date.prototype.addDays = function (days) { // eslint-disable-line no-extend-native
     var date = new Date(this.valueOf());
     date.setDate(date.getDate() + days);
     return date;
 }
 
-//initMaturityDate.setTime(0);
 initMaturityDate.setDate(initMaturityDate.getDate() + DEFAULT_OPTION_DURATION);
 
 export default class MintOptionPage extends React.Component {
@@ -121,11 +120,17 @@ export default class MintOptionPage extends React.Component {
 
     async componentDidMount() {
         //console.log("componentDidMount");
-        const addressBalance = await getBalanceForAddress(localStorage.getItem('address') ?? '');
-        const walletTokens = addressBalance.confirmed.tokens;
-        this.setState({ walletTokens: walletTokens });
-        //console.log("addressBalance", addressBalance);
-        await this.setUnderlyingTokenId(walletTokens[0].tokenId);
+        const address = localStorage.getItem('address') ?? '';
+        if (address !== '') {
+            const addressBalance = await getBalanceForAddress(address);
+            const walletTokens = addressBalance.confirmed.tokens;
+            console.log("componentDidMount MintOptionPage walletTokens", walletTokens)
+            if (walletTokens && walletTokens.length > 0) {
+                this.setState({ walletTokens: walletTokens });
+            //console.log("addressBalance", addressBalance);
+            await this.setUnderlyingTokenId(walletTokens[0].tokenId);
+            }
+        }
     }
 
     render() {
@@ -134,13 +139,13 @@ export default class MintOptionPage extends React.Component {
         const walletTokenIds = underlyingPutTokens.map(t => t.value);
         for (const tok of UNDERLYING_TOKENS) {
             if (!walletTokenIds.includes(tok.tokenId)) {
-                underlyingPutTokens.push({ value: tok.tokenId, label: tok.label } )
+                underlyingPutTokens.push({ value: tok.tokenId, label: tok.label })
             }
         }
         const txFees = TX_FEES.map(i => { return { value: i, label: formatERGAmount(i) } });
         var currentToken = this.state.walletTokens.find(tok => tok.tokenId === this.state.underlyingTokenId);
-        if(!currentToken && UNDERLYING_TOKENS.map(t=>t.tokenId).includes(this.state.underlyingTokenId)) {
-            const u_tok = UNDERLYING_TOKENS.find(t=>t.tokenId === this.state.underlyingTokenId)
+        if (!currentToken && UNDERLYING_TOKENS.map(t => t.tokenId).includes(this.state.underlyingTokenId)) {
+            const u_tok = UNDERLYING_TOKENS.find(t => t.tokenId === this.state.underlyingTokenId)
             currentToken = {
                 name: u_tok.label,
                 amount: 0,
@@ -151,11 +156,7 @@ export default class MintOptionPage extends React.Component {
 
         //console.log("currentToken", currentToken, this.state.walletTokens)
         const mintFee = DAPP_UI_MINT_FEE + Math.floor(this.state.shareSize * this.state.optionAmount * this.state.strikePrice * NANOERG_TO_ERG * DAPP_UI_FEE / 1000);
-        //console.log("mintFee", currentToken, mintFee, Math.floor(this.state.shareSize * this.state.optionAmount * this.state.strikePrice * NANOERG_TO_ERG * DAPP_UI_FEE / 1000))
-        var strikePricePrecision = 4;
-        if (this.state.strikePrice < 100000) {
-            strikePricePrecision = 9;
-        }
+        //console.log("mintFee", currentToken, mintFee, Math.floor(this.state.shareSize * this.state.optionAmount * this.state.strikePrice * NANOERG_TO_ERG * DAPP_UI_FEE / 1000)
 
         return (
             <Fragment >
@@ -207,6 +208,7 @@ export default class MintOptionPage extends React.Component {
                                                         value={currentToken?.name}
                                                         onChange={(tok) => this.setUnderlyingTokenId(tok.value)}
                                                         options={underlyingTokens}
+                                                        noOptionMsg={"No token found"}
                                                     />
 
                                                 </div>
@@ -237,7 +239,7 @@ export default class MintOptionPage extends React.Component {
                                                     {
                                                         this.state.underlyingOptionDef ?
                                                             <OptionLink optionDef={this.state.underlyingOptionDef} />
-                                                        :
+                                                            :
                                                             <TokenLink tokenId={currentToken.tokenId} />
                                                     }
 

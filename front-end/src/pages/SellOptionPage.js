@@ -128,6 +128,7 @@ export default class SellOptionPage extends React.Component {
                                                 value={currentOption?.optionDef.optionName}
                                                 onChange={(tok) => this.setOptionToken(this.state.walletOptions.find(o => o?.optionDef.optionTokenId === tok.value))}
                                                 options={optionTokens}
+                                                noOptionMsg={"No option found"}
                                             />
                                         </div>
                                     </td>
