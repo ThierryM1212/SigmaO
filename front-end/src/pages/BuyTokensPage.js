@@ -1,6 +1,6 @@
 import React from 'react';
 import { boxByIdv1, getTokenInfo, getTokensForAddress, getUnspentBoxesForAddressUpdated } from '../ergo-related/explorer';
-import { OPTION_SCRIPT_ADDRESS, SELL_FIXED_SCRIPT_ADDRESS } from '../utils/script_constants';
+import { OPTION_SCRIPT_ADDRESS, SELL_FIXED_SCRIPT_ADDRESS, UNDERLYING_TOKENS } from '../utils/script_constants';
 import { SellTokenRequest } from '../objects/SellTokenRequest';
 import SellTokenList from '../components/SellTokenList';
 import { getAMMPrices } from '../ergo-related/amm';
@@ -27,7 +27,7 @@ export default class BuyTokensPage extends React.Component {
             tokenPrice: 0,
             oraclePrice: undefined,
             AMMPrices: [],
-            walletTokens: [],
+            tokenList: [],
             buyTokenRequests: undefined,
             currentToken: undefined,
             currentOptionDef: undefined,
@@ -44,7 +44,7 @@ export default class BuyTokensPage extends React.Component {
     setTokenId = (s) => { this.setState({ tokenId: s }, () => this.setCurrentToken(s)); };
 
     async setCurrentToken(tokenId) {
-        var currentToken = this.state.walletTokens.find(o => o.tokenId === tokenId);
+        var currentToken = this.state.tokenList.find(o => o.tokenId === tokenId);
         if (!currentToken) {
             currentToken = await getTokenInfo(tokenId);
             currentToken['amount'] = 0;
@@ -91,22 +91,30 @@ export default class BuyTokensPage extends React.Component {
         const AMMPrices = await getAMMPrices();
         this.setState({ AMMPrices: AMMPrices });
         const address = localStorage.getItem('address') ?? '';
+        var tokenList = [];
         if (address !== '') {
-            const walletTokens = await getTokensForAddress(address);
-            //console.log("walletOptionDefs", walletOptionDefs)
-            if (walletTokens.length > 0) {
-                this.setTokenId(walletTokens[0].tokenId);
+            tokenList = await getTokensForAddress(address);
+            const walletTokenIds = tokenList.map(t => t.tokenId);
+            for (const tok of UNDERLYING_TOKENS) {
+                if (!walletTokenIds.includes(tok.tokenId)) {
+                    tokenList.push({...tok, name:tok.label, amount: 0})
+                }
             }
-            this.setState({ walletTokens: walletTokens })
+            //console.log("walletOptionDefs", walletOptionDefs)
+            if (tokenList.length > 0) {
+                this.setTokenId(tokenList[0].tokenId);
+            }
+            this.setState({ tokenList: tokenList })
         } else {
             errorAlert("ERG address not set")
             return;
         }
+
         this.fetchSellTokenRequests();
     }
 
     render() {
-        const tokensList = this.state.walletTokens.map(u_tok => { return { value: u_tok.tokenId, label: u_tok.name } });
+        const tokensList = this.state.tokenList.map(u_tok => { return { value: u_tok.tokenId, label: u_tok.name } });
         const currentToken = this.state.currentToken;
         const currentTokenPrice = this.state.AMMPrices.find(t => t.tokenId === this.state.tokenId)?.price ?? 0;
         //console.log("currentTokenPrice", currentTokenPrice, this.state.AMMPrices)
