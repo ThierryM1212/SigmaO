@@ -29,6 +29,8 @@ export default class BuyOptionsPage extends React.Component {
                 optionSellRequestsBoxes = optionSellRequestsBoxes.filter(b => b.assets[0].tokenId === this.state.optionTokenId);
                 const optionSellRequests = await Promise.all(optionSellRequestsBoxes.map(async (b) => await SellOptionRequest.create(b)));
                 this.setState({ sellOptionRequestsList: optionSellRequests })
+            } else {
+                this.setState({ sellOptionRequestsList: [] })
             }
         }
     }
