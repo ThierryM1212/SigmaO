@@ -6,14 +6,16 @@ import { addressToErgotree, ergoTreeToTemplateHash, parseUtxos } from './wasm.js
 
 
 export async function get(url, apiKey = '') {
+
     try {
-        return await fetch(url, {
+        const res = await fetch(url, {
             headers: {
                 Accept: 'application/json',
                 'Content-Type': 'application/json',
                 api_key: apiKey,
             }
-        }).then(res => res.json());
+        })
+        return JSONBigInt.parse(await res.text());
     } catch (e) {
         console.error(e);
         return [];
