@@ -248,3 +248,7 @@ main{ flex:1; }
   50% { box-shadow: 0 0 20px var(--my-bg-yellow); }
   100% { box-shadow: 0 0 3px var(--my-bg-yellow); }
 }
+
+.tdleft {
+  max-width:400px;
+}

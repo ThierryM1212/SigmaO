@@ -201,7 +201,7 @@ export default class TokenMarketPage extends React.Component {
                                     {
                                         Object.keys(this.state.tokenRequests).map(tokenId =>
                                             <tr key={tokenId}>
-                                                <td>
+                                                <td className='tdleft'>
                                                     {this.state.tokenRequests[tokenId].isOption ?
                                                         <OptionLink optionDef={this.state.tokenRequests[tokenId].optionDef} />
                                                         :
@@ -221,7 +221,7 @@ export default class TokenMarketPage extends React.Component {
                                                         {
                                                             this.state.tokenRequests[tokenId].buyTokenRequests.map(btr => {
                                                                 const tokenDecimalFactor = Math.pow(10, this.state.tokenRequests[tokenId].tokenInfos?.decimals);
-                                                                console.log("btr", btr)
+                                                                //console.log("btr", btr)
                                                                 return <div className="w-100 d-flex flex-row justify-content-between zonemint m-1 p-1"
                                                                     key={btr.full.boxId}>
                                                                     <TokenPriceAmount
@@ -244,7 +244,7 @@ export default class TokenMarketPage extends React.Component {
                                                         {
                                                             this.state.tokenRequests[tokenId].sellTokenRequests.map(str => {
                                                                 const tokenDecimalFactor = Math.pow(10, this.state.tokenRequests[tokenId].tokenInfos?.decimals);
-                                                                console.log("str", str)
+                                                                //console.log("str", str)
                                                                 return <div className="w-100 d-flex flex-row justify-content-between zonemint m-1 p-1"
                                                                     key={str.full.boxId}>
                                                                     <TokenPriceAmount
@@ -268,7 +268,7 @@ export default class TokenMarketPage extends React.Component {
                                                         {
                                                             this.state.tokenRequests[tokenId].sellOptionsRequests.map(sor => {
                                                                 const tokenDecimalFactor = Math.pow(10, this.state.tokenRequests[tokenId].tokenInfos?.decimals);
-                                                                console.log("sor", sor)
+                                                                //console.log("sor", sor)
                                                                 return <div className="w-100 d-flex flex-row justify-content-between zonemint m-1 p-1"
                                                                     key={sor.full.boxId}>
                                                                     <TokenPriceAmount
