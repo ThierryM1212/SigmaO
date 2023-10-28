@@ -28,7 +28,7 @@ export default function OptionLink(props) {
                 target="_blank" rel="noreferrer"
                 data-tip
                 data-for={props.optionDef.optionTokenId} >
-                {formatLongString(props.optionDef.optionName, 10) }
+                {formatLongString(props.optionDef.optionName, 30) }
             </a>
             &nbsp;
 

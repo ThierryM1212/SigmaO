@@ -1,4 +1,5 @@
 import ls from 'localstorage-slim';
+import JSONBigInt from 'json-bigint';
 
 export async function post(url, body = {}, apiKey = '') {
     return await fetch(url, {
@@ -12,7 +13,7 @@ export async function post(url, body = {}, apiKey = '') {
             'Access-Control-Allow-Methods': 'GET,HEAD,OPTIONS,POST,PUT',
             api_key: apiKey,
         },
-        body: JSON.stringify(body),
+        body: JSONBigInt.stringify(body),
     });
 }
 
@@ -39,7 +40,8 @@ export async function get(url, apiKey = '', ttl = 0) {
             }
         });
         //console.log("get", result)
-        const resJson = await result.json();
+        const resText = await result.text();
+        const resJson = JSONBigInt.parse(resText)
         if (ttl > 0 && result.status === 200) {
             res_cache = ls.get('web_cache_' + ttl.toString()) ?? {};
             res_cache[url] = resJson;
