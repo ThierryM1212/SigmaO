@@ -150,8 +150,41 @@ const TOKENS = [
         oracleTokenId: "f40afb6f877c40a30c8637dd5362227285738174151ce66d6684bc1b727ab6cf",
         oracleType: "Spectrum LP",
         icon: "spf.svg",
-    }
+    },
+    {
+        name: "GORT",
+        tokenId: "7ba2a85fdb302a181578b1f64cb4a533d89b3f8de4159efece75da41041537f9",
+        decimals: 0,
+        oracleTokenId: "d1c9e20657b4e37de3cd279a994266db34b18e6e786371832ad014fd46583198",
+        oracleType: "Spectrum LP",
+        icon: "gort.png",
+    },
+    {
+        name: "RSN",
+        tokenId: "8b08cdd5449a9592a9e79711d7d79249d7a03c535d17efaee83e216e80a44c4b",
+        decimals: 3,
+        oracleTokenId: "1b694b15467c62f0cd4525e368dbdea2329c713aa200b73df4a622e950551b40",
+        oracleType: "Spectrum LP",
+        icon: "rosen.png",
+    },
+    {
+        name: "hodlERG3",
+        tokenId: "cbd75cfe1a4f37f9a22eaee516300e36ea82017073036f07a09c1d2e10277cda",
+        decimals: 9,
+        oracleTokenId: "e8ea3b0f0897df01886c0a1451e81930e44d5c5eb2e5131a306994276cab5c6b",
+        oracleType: "Spectrum LP",
+        icon: "hodlerg3.svg",
+    },
+    {
+        name: "AuctionCoin",
+        tokenId: "52f4544ce8a420d484ece16f9b984d81c23e46971ef5e37c29382ac50f80d5bd",
+        decimals: 0,
+        oracleTokenId: "d968ce08fd24f3f5fad86f9dded2eaf0920b63c6fd62e56489f74789a8807c2a",
+        oracleType: "Spectrum LP",
+        icon: "Auction_Coin.png",
+    },
 
 ]
 
 module.exports = {TOKENS};
+
