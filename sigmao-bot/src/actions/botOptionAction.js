@@ -403,7 +403,7 @@ export async function processBuyRequest(buyRequest) {
                     // Issuer pay box
                     const issuerPayBoxBuilder = new (await ergolib).ErgoBoxCandidateBuilder(
                         (await ergolib).BoxValue.from_i64((await ergolib).I64.from_str(optionValue.toString())),
-                        (await ergolib).Contract.pay_to_address((await ergolib).Address.from_base58(optionDef.issuerAddress)),
+                        (await ergolib).Contract.pay_to_address((await ergolib).Address.from_base58(validSellOptionList[0].sellerAddress)),
                         creationHeight);
                     try {
                         outputCandidates.add(issuerPayBoxBuilder.build());
@@ -484,30 +484,30 @@ export async function processBuyRequest(buyRequest) {
             const creationHeight = await currentHeight();
             const outputCandidates = (await ergolib).ErgoBoxCandidates.empty();
 
-            // rebuild the option reserve
-            const optionReserveBoxBuilder = new (await ergolib).ErgoBoxCandidateBuilder(
+            // rebuild the sell reserve
+            const sellReserveBoxBuilder = new (await ergolib).ErgoBoxCandidateBuilder(
                 reserveBoxWASM.value(), // unchanged
                 (await ergolib).Contract.pay_to_address((await ergolib).Address.from_base58(SELL_FIXED_SCRIPT_ADDRESS)),
                 creationHeight);
             const initialReserveTokenAmount = reserveBoxWASM.tokens().get(0).amount().as_i64().to_str();
             const outputReserveTokenAmount = BigInt(initialReserveTokenAmount) - BigInt(tokenBuyAmount);
             if (outputReserveTokenAmount > 0) {
-                optionReserveBoxBuilder.add_token( // option token sold
+                sellReserveBoxBuilder.add_token( // option token sold
                     reserveBoxWASM.tokens().get(0).id(),
                     (await ergolib).TokenAmount.from_i64((await ergolib).I64.from_str(outputReserveTokenAmount.toString())),
                 );
             }
-            optionReserveBoxBuilder.set_register_value(4, reserveBoxWASM.register_value(4));
-            optionReserveBoxBuilder.set_register_value(5, reserveBoxWASM.register_value(5));
-            optionReserveBoxBuilder.set_register_value(6, reserveBoxWASM.register_value(6));
+            sellReserveBoxBuilder.set_register_value(4, reserveBoxWASM.register_value(4));
+            sellReserveBoxBuilder.set_register_value(5, reserveBoxWASM.register_value(5));
+            sellReserveBoxBuilder.set_register_value(6, reserveBoxWASM.register_value(6));
             try {
-                outputCandidates.add(optionReserveBoxBuilder.build());
+                outputCandidates.add(sellReserveBoxBuilder.build());
             } catch (e) {
                 console.log(`building error: ${e}`);
                 throw e;
             }
 
-            // option delivery box
+            // token delivery box
             const optionDeliveryBoxBuilder = new (await ergolib).ErgoBoxCandidateBuilder(
                 (await ergolib).BoxValue.from_i64((await ergolib).I64.from_str(tokenDeliveryBoxValue.toString())),
                 (await ergolib).Contract.pay_to_address((await ergolib).Address.from_base58(tokenBuyerAddress)),
