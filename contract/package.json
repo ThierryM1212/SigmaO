@@ -9,6 +9,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@fleet-sdk/compiler": "^0.3.2",
     "mustache": "^4.2.0"
   }
 }

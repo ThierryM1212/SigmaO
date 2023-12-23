@@ -9,19 +9,22 @@ import IntrinsicPriceIcon from '../images/attach_money_white_24dp.svg';
 import ReserveIcon from '../images/account_balance_white_24dp.svg';
 import ErrorIcon from '../images/error_outline_white_24dp.svg';
 import HelpToolTip from './HelpToolTip';
-import { exerciseOptionRequest } from '../actions/userOptionActions';
-import { promptOptionAmount } from '../utils/Alerts';
+import { exerciseOptionRequest, refundOptionRequest } from '../actions/userOptionActions';
+import { promptErgAddr, promptOptionAmount } from '../utils/Alerts';
 import OptionLink from './OptionLink';
 import TokenLink from './TokenLink';
 import OptionTokenImage from './OptionTokenImage';
+import { deliverOption, mintOption } from '../actions/botOptionAction';
 
 async function exerciseOption(optionTokenId, maxAmount) {
     const amount = await promptOptionAmount("Option amount to exercise", maxAmount);
-    await exerciseOptionRequest(optionTokenId, amount);
+    const address = localStorage.getItem('address') ?? '';
+    const exerciseAddress = await promptErgAddr("Set an address for the exercise option delivery", address)
+    await exerciseOptionRequest(optionTokenId, amount, exerciseAddress);
 }
 
 export default function OptionCard(props) {
-    //console.log("OptionCard", props);
+    console.log("OptionCard", props);
     const option = props.option;
     const optionDef = props.option?.optionDef ?? props.option;
     const oraclePrice = props?.oraclePrice;
@@ -193,6 +196,37 @@ export default function OptionCard(props) {
                                     </div>
                                     : null
                             }
+                            {
+                                !option.isMinted ?
+                                    <div className='w-100 d-flex flex-row align-items-center justify-content-center m-2 p-2'>
+                                        <button className='btn btn-blue'
+                                            onClick={() => refundOptionRequest(props.option.full)}
+                                        >
+                                            Refund
+                                        </button>
+                                        <button className='btn btn-blue'
+                                            onClick={() => mintOption(props.option.full)}
+                                        >
+                                            Mint
+                                        </button>
+
+                                    </div>
+                                    : null
+                            }
+                            {
+                                !option.isDelivered ?
+                                    <div className='w-100 d-flex flex-row align-items-center justify-content-center m-2 p-2'>
+                                        <button className='btn btn-blue'
+                                            onClick={() => deliverOption(props.option.full)}
+                                        >
+                                            Deliver
+                                        </button>
+                                        
+
+                                    </div>
+                                    : null
+                            }
+
                         </Fragment>
                         : null
                 }

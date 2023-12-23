@@ -1,6 +1,10 @@
 import { OptionDef } from './OptionDef';
 import JSONBigInt from 'json-bigint';
-import { MIN_NANOERG_BOX_VALUE } from '../utils/constants';
+import { decodeLongArray } from '../ergo-related/serializer';
+import { getRegisterValue, getTokenAmount } from '../ergo-related/wasm';
+import { PEER_BOX_SCRIPT_ADDRESS } from '../utils/script_constants';
+import { boxById, getTransactionById, searchUnspentBoxesUpdated } from '../ergo-related/explorer';
+import { PeerBox } from './PeerBox';
 let ergolib = import('ergo-lib-wasm-browser');
 
 
@@ -12,12 +16,14 @@ export class Option {
         this.isDelivered = false;
         this.isEmpty = false;
         this.exercibleOptionAmount = 0;
+        this.totalMintedOptions = 0;
+        this.totalExercisedOptions = 0;
     }
-    
+
     async initialize() {
         const boxWASM = (await ergolib).ErgoBox.from_json(JSONBigInt.stringify(this.full));
         const creationBoxJSON = JSONBigInt.parse(boxWASM.register_value(7).to_ergo_box().to_json());
-        if (this.full.ergoTree === creationBoxJSON.ergoTree) { 
+        if (this.full.ergoTree === creationBoxJSON.ergoTree) {
             this.optionDef = await OptionDef.create(creationBoxJSON);
         } else {
             this.optionDef = await OptionDef.create(this.full);
@@ -31,26 +37,33 @@ export class Option {
                 this.isDelivered = true;
             }
         }
+        if (this.isMinted) {
+            const optionState = await decodeLongArray(getRegisterValue(this.full, "R8"))
+            this.totalMintedOptions = optionState[0];
+            this.totalExercisedOptions = optionState[1];
+        }
         if (this.optionDef.isExercible) {
-            if (this.optionDef.optionType === 0) { // call
-                const amountTokenReserve = this.full.assets.find(t => t.tokenId === this.optionDef.underlyingTokenId)?.amount ?? 0;
-                this.exercibleOptionAmount = amountTokenReserve / (this.optionDef.shareSize * Math.pow(10, this.optionDef.underlyingTokenInfo.decimals))
-            } else {
-                const amountERGreserve = this.full.value - this.optionDef.txFee - MIN_NANOERG_BOX_VALUE;
-                this.exercibleOptionAmount = amountERGreserve / (this.optionDef.strikePrice * this.optionDef.shareSize * Math.pow(10, this.optionDef.underlyingTokenInfo.decimals))
-            }
+            this.exercibleOptionAmount = this.totalMintedOptions - this.totalExercisedOptions;
             //console.log("exercibleOptionAmount ", this.exercibleOptionAmount)
         }
-        if (this.optionDef.optionType === 0) { // Call
-            if (this.full.assets.length === 1) {
-                this.isEmpty = true;
-            }
-        } else { // Put
-            if (this.full.value === this.optionDef.txFee + MIN_NANOERG_BOX_VALUE) {
-                this.isEmpty = true;
-            }
-        }
+        this.isEmpty = (this.totalMintedOptions === this.totalExercisedOptions)
+        console.log("totalMintedOptions totalExercisedOptions", this.totalMintedOptions, this.totalExercisedOptions)
         //console.log("initialize", this)
+    }
+
+    async getPeerBox() {
+        if (!this.isMinted) {
+            return this.optionDef.getPeerBox();
+        } else {
+            // Get the peerbox used to mint the option tokens
+            console.log("this", this)
+            const mintOptionBox = await boxById(this.optionDef.optionTokenId);
+            console.log("mintOptionBox", mintOptionBox)
+            const mintTx = await getTransactionById(mintOptionBox.spentTransactionId)
+            console.log("getPeerBox mintTx", mintTx)
+            const peerBox = await PeerBox.create(mintTx.inputs[1])
+            return peerBox
+        }
     }
 
     static async create(boxJSON) {

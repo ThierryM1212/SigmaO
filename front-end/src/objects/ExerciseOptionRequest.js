@@ -1,5 +1,5 @@
 import { boxById } from '../ergo-related/explorer';
-import { sigmaPropToAddress } from '../ergo-related/serializer';
+import { ergoTreeToAddress, sigmaPropToAddress } from '../ergo-related/serializer';
 import { getRegisterValue } from '../ergo-related/wasm';
 import { OptionDef } from './OptionDef';
 
@@ -8,6 +8,7 @@ export class ExerciseOptionRequest {
     constructor(boxJSON) {
         this.full = boxJSON;
         this.exerciseAddress = '';
+        this.issuerAddress = '';
         this.optionTokenId = '';
         this.optionAmount = '0';
         this.value = '0';
@@ -15,7 +16,10 @@ export class ExerciseOptionRequest {
     }
 
     async initialize() {
-        this.exerciseAddress = await sigmaPropToAddress(getRegisterValue(this.full, "R4"));
+        this.issuerAddress = await sigmaPropToAddress(getRegisterValue(this.full, "R4"));
+
+        this.exerciseAddress = await ergoTreeToAddress(getRegisterValue(this.full, "R6").slice(4))
+        
         this.optionTokenId = this.full.assets[0].tokenId ?? '';
         if (this.optionTokenId !== '') {
             const optionIssuerBox = await boxById(this.optionTokenId);

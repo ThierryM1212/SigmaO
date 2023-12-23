@@ -78,7 +78,7 @@ export default class OptionDetails extends React.Component {
                                             <td>Issuer address</td><td><AddressLink address={optionDef.issuerAddress} /></td>
                                         </tr>
                                         <tr>
-                                            <td>dApp UI address</td><td><AddressLink address={optionDef.dAppUIAddress} /></td>
+                                            <td>dApp UI address hash</td><td>{optionDef.dAppUIErgotreeHash}</td>
                                         </tr>
                                         <tr>
                                             <td>dApp mint fee</td><td>{formatERGAmount(optionDef.dAppUIMintFee)}</td>

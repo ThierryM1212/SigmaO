@@ -1,8 +1,10 @@
-import { boxByIdv1, getTokenInfo } from '../ergo-related/explorer';
+import JSONBigInt from 'json-bigint';
+import { boxByIdv1, getTokenInfo, searchUnspentBoxesUpdated } from '../ergo-related/explorer';
 import { decodeHex, decodeHexArray, decodeLongArray, decodeString, ergoTreeToAddress } from '../ergo-related/serializer';
-import { getRegisterValue } from '../ergo-related/wasm';
+import { getRegisterValue, getTokenAmount } from '../ergo-related/wasm';
 import { TX_FEE } from '../utils/constants';
-import { OPTION_SCRIPT_ADDRESS, UNDERLYING_TOKENS } from '../utils/script_constants';
+import { OPTION_SCRIPT_ADDRESS, PEER_BOX_SCRIPT_ADDRESS, UNDERLYING_TOKENS } from '../utils/script_constants';
+import { PeerBox } from './PeerBox';
 let ergolib = import('ergo-lib-wasm-browser');
 
 
@@ -13,8 +15,11 @@ export class OptionDef {
         this.underlyingTokenId = '';
         this.underlyingTokenInfo = undefined;
         this.optionName = '';
-        this.dAppUIErgotree = '';
-        this.dAppUIAddress = '';
+        this.dAppUIErgotreeHash = '';
+        this.optionDeliveryErgotreeHash = '';
+        this.optionExerciseErgotreeHash = '';
+        this.optionCloseErgotreeHash = '';
+        this.optionParams = [];
         this.optionType = 0;
         this.optionStyle = 0;
         this.shareSize = 1;
@@ -28,6 +33,8 @@ export class OptionDef {
         this.isExercible = false;
         this.isCompoundOption = false;
         this.underlyingOptionDef = undefined;
+        this.initERGAmount = boxJSON.value;
+        this.initTokenAmount = 0;
     }
 
     async initialize() {
@@ -43,9 +50,12 @@ export class OptionDef {
         const R9 = await decodeHexArray(getRegisterValue(this.full, "R9"));
         this.issuerErgotree = R9[0];
         this.issuerAddress = (await ergolib).Address.p2pk_from_pk_bytes(Buffer.from(this.issuerErgotree, 'hex')).to_base58();
-        this.dAppUIErgotree = R9[1];
-        this.dAppUIAddress = await ergoTreeToAddress(this.dAppUIErgotree);
-        const optionParams = await decodeLongArray(getRegisterValue(this.full, "R8"))
+        this.dAppUIErgotreeHash = R9[1];
+        this.optionDeliveryErgotreeHash = R9[2];
+        this.optionExerciseErgotreeHash = R9[3];
+        this.optionCloseErgotreeHash = R9[4];
+        const optionParams = await decodeLongArray(getRegisterValue(this.full, "R8"));
+        this.optionParams = optionParams;
         this.optionType = optionParams[0];
         this.optionStyle = optionParams[1];
         this.shareSize = optionParams[2];
@@ -54,6 +64,10 @@ export class OptionDef {
         this.dAppUIMintFee = optionParams[5];
         this.txFee = optionParams[6];
         this.address = await ergoTreeToAddress(this.full.ergoTree);
+
+        if (this.optionType === 0) { // Call
+            this.initTokenAmount = getTokenAmount(this.full, this.underlyingTokenId)
+        }
 
         const now = new Date().valueOf();
         const maturityDate = this.maturityDate;
@@ -70,7 +84,7 @@ export class OptionDef {
         } else { // American
             this.isExercible = !this.isExpired
         }
-        //console.log("initialize", this)
+        console.log("initialize", this)
     }
 
     getIntrinsicPrice(oraclePrice) {
@@ -84,6 +98,41 @@ export class OptionDef {
             }
         }
 
+    }
+
+    async getPeerBox() {
+
+        // Search the peer box matching the option parameters
+        const peerBoxesJSON = await searchUnspentBoxesUpdated(PEER_BOX_SCRIPT_ADDRESS, [],
+            {
+                "R5": this.underlyingTokenId,
+                "R7": JSONBigInt.stringify([this.initERGAmount, this.initTokenAmount]),
+                "R8": JSONBigInt.stringify(this.optionParams)
+            });
+        console.log("getPeerBox0", peerBoxesJSON)
+        let peerBoxes = await Promise.all(peerBoxesJSON.map(async b => {
+            const peerBox = await PeerBox.create(b);
+            return peerBox;
+        }))
+        console.log("getPeerBox1", peerBoxes, this)
+        peerBoxes = peerBoxes.filter(pb => {
+            return pb.issuerAddress === this.issuerAddress &&
+                pb.dAppUIErgotreeHash === this.dAppUIErgotreeHash &&
+                pb.optionDeliveryErgotreeHash === this.optionDeliveryErgotreeHash &&
+                pb.optionExerciseErgotreeHash === this.optionExerciseErgotreeHash &&
+                pb.optionCloseErgotreeHash === this.optionCloseErgotreeHash
+        })
+        console.log("getPeerBox2", peerBoxes)
+        if (peerBoxes.length > 1) {
+            peerBoxes = peerBoxes.filter(pb => {
+                return pb.full.transactionId === this.full.transactionId
+            })
+        }
+        console.log("getPeerBox3", peerBoxes)
+        if (peerBoxes.length >= 1) {
+            return peerBoxes[0];
+        }
+        console.log("getPeerBox4", peerBoxes)
     }
 
     static async create(boxJSON) {

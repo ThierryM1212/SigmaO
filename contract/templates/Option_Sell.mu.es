@@ -44,7 +44,8 @@
     val remainingDuration: Long = maturityDate - currentTimestamp
     val isFrozen: Boolean = currentTimestamp > (maturityDate - FreezeDelay)
 
-    val validOption: Boolean = optionTokenIDIn == selfToken0._1 
+    val validOption: Boolean = optionTokenIDIn == selfToken0._1    &&
+                               blake2b256(optionCreationBox.propositionBytes) == OptionScriptHash
 
     val validBasicReplicatedOutput0: Boolean = if (OUTPUTS(0).propositionBytes == SELF.propositionBytes) {
         validOption                                                &&
@@ -155,7 +156,7 @@
 
     // RESULT
     (        
-        sellerPK                        || // refund the seller
+        sellerPK                         || // seller can cancel at any time
         sigmaProp(
             validSellOption              || 
             validCloseSellContract

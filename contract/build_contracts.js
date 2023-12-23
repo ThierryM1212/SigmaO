@@ -38,12 +38,21 @@ function compileContract(contract, symbols = '') {
     const compiledContract = new CompiledContract(compileOutput);
     return compiledContract;
 }
+function compileContractEWC(contract) {
+    console.log(`Building contract ${contract} ...`)
+    var command = `ewc c ${contract}`;
+    const compileOutput = execSync(command).toString();
+    const parsedOutput = JSON.parse(compileOutput)
+    const dummy = "y\r\n" + parsedOutput.ergotree + "\r\ny\r\n" + parsedOutput.hash + "\r\ny\r\n" + parsedOutput.address
+    const compiledContract = new CompiledContract(dummy);
+    return compiledContract;
+}
 
 const buildBaseDir = './build/';
 var jsTokenList = [], symbolFileName = '';
 
 // Compile static contracts
-const optionCompiledContract = compileContract('./Option.es');
+const optionCompiledContract = compileContractEWC('./Option.es');
 const buyCompiledContract = compileContract('./Buy_Token_Request.es');
 
 // Compile Sell contracts depeding on tokenid and oracle nft

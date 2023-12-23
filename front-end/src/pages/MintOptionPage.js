@@ -53,6 +53,9 @@ export default class MintOptionPage extends React.Component {
             oraclePrice: undefined,
             walletTokens: [],
             showPriceSimulation: false,
+            optionDeliveryAddress: '',
+            optionExerciseAddress: '',
+            optionCloseAddress: '',
         };
 
         this.setOptionType = this.setOptionType.bind(this);
@@ -68,6 +71,9 @@ export default class MintOptionPage extends React.Component {
         this.setK2 = this.setK2.bind(this);
         this.setTxFee = this.setTxFee.bind(this);
         this.togglePriceSimulation = this.togglePriceSimulation.bind(this);
+        this.setOptionDeliveryAddress = this.setOptionDeliveryAddress.bind(this);
+        this.setOptionExerciseAddress = this.setOptionExerciseAddress.bind(this);
+        this.setOptionCloseAddress = this.setOptionCloseAddress.bind(this);
     }
 
     setOptionType = (type) => { this.setState({ optionType: type, }); };
@@ -103,6 +109,9 @@ export default class MintOptionPage extends React.Component {
     setK2 = (s) => { this.setState({ K2: s.replace(/[^0-9]/g, "") }); };
     setTxFee = (s) => { this.setState({ txFee: s }); };
     togglePriceSimulation = (s) => { this.setState({ showPriceSimulation: !s }); }
+    setOptionDeliveryAddress = (s) => { this.setState({ optionDeliveryAddress: s }); };
+    setOptionExerciseAddress = (s) => { this.setState({ optionExerciseAddress: s }); };
+    setOptionCloseAddress = (s) => { this.setState({ optionCloseAddress: s }); };
 
     async mintOption() {
         try {
@@ -111,7 +120,8 @@ export default class MintOptionPage extends React.Component {
             const optionStyleNum = OPTION_STYLES.find(o => o.label === this.state.optionStyle).id;
             //const underlyingToken = this.state.walletTokens.find(tok => tok.tokenId === this.state.underlyingTokenId);
             await createOptionRequest(optionTypeNum, optionStyleNum, this.state.underlyingTokenId, this.state.optionAmount, this.state.shareSize,
-                Math.round(this.state.strikePrice * NANOERG_TO_ERG), maturityDate, this.state.txFee);
+                Math.round(this.state.strikePrice * NANOERG_TO_ERG), maturityDate, this.state.txFee, 
+                this.state.optionDeliveryAddress, this.state.optionExerciseAddress, this.state.optionCloseAddress);
         } catch (e) {
             console.log(e);
             errorAlert(e.toString())
@@ -127,10 +137,13 @@ export default class MintOptionPage extends React.Component {
             console.log("componentDidMount MintOptionPage walletTokens", walletTokens)
             if (walletTokens && walletTokens.length > 0) {
                 this.setState({ walletTokens: walletTokens });
-            //console.log("addressBalance", addressBalance);
-            await this.setUnderlyingTokenId(walletTokens[0].tokenId);
+                //console.log("addressBalance", addressBalance);
+                await this.setUnderlyingTokenId(walletTokens[0].tokenId);
             }
         }
+        this.setOptionDeliveryAddress(address)
+        this.setOptionExerciseAddress(address)
+        this.setOptionCloseAddress(address)
     }
 
     render() {
@@ -327,6 +340,46 @@ export default class MintOptionPage extends React.Component {
                                         </div>
                                     </td>
                                     <td><small>Transaction miner fee</small></td>
+                                </tr>
+
+                                <tr>
+                                    <td>Option delivery address</td>
+                                    <td>
+                                        <textarea type="text"
+                                            id="optDeliveryAddress"
+                                            className="form-control w-100 input-dark"
+                                            onChange={e => this.setOptionDeliveryAddress(e.target.value)}
+                                            value={this.state.optionDeliveryAddress}
+                                            autoComplete="off"
+                                        />
+                                    </td>
+                                    <td><small>Address to deliver the option</small></td>
+                                </tr>
+                                <tr>
+                                    <td>Option exercise address</td>
+                                    <td>
+                                        <textarea type="text"
+                                            id="optExerciseAddress"
+                                            className="form-control w-100 input-dark"
+                                            onChange={e => this.setOptionExerciseAddress(e.target.value)}
+                                            value={this.state.optionExerciseAddress}
+                                            autoComplete="off"
+                                        />
+                                    </td>
+                                    <td><small>Address to get the benefits when an option is exercised</small></td>
+                                </tr>
+                                <tr>
+                                    <td>Option close address</td>
+                                    <td>
+                                        <textarea  type="text"
+                                            id="optCloseAddress"
+                                            className="form-control w-100 input-dark"
+                                            onChange={e => this.setOptionCloseAddress(e.target.value)}
+                                            value={this.state.optionCloseAddress}
+                                            autoComplete="off"
+                                        />
+                                    </td>
+                                    <td><small>Address to get what is remaining in the reserve when the option is closed</small></td>
                                 </tr>
                             </tbody>
                         </Table>

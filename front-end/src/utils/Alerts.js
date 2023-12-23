@@ -104,11 +104,11 @@ export function promptOptionAmount(title, max) {
     });
 }
 
-export function promptErgAddr() {
+export function promptErgAddr(title = "Set ERG address", defaultValue = "ERG Address") {
     return new Promise(function (resolve, reject) {
         Swal.fire({
-            title: "Set ERG address",
-            html: `<div class='align-center'><input type="text" size=53 id="ergAddress" class="swal2-input" placeholder="ERG address"></div>`,
+            title: title,
+            html: `<div class='align-center'><input type="text" size=53 id="ergAddress" class="swal2-input" value="${defaultValue}"></div>`,
             focusConfirm: false,
             showCancelButton: true,
             showConfirmButton: true,

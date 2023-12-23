@@ -257,15 +257,13 @@ export function getMissingTokens(inputs, outputs) {
     const tokensOut = getTokenListFromUtxos(outputs);
     var res = {};
     console.log("getMissingTokens", tokensIn, tokensOut);
-    if (tokensIn !== {}) {
-        for (const token in tokensIn) {
-            if (tokensOut !== {} && token in tokensOut) {
-                if (tokensIn[token] - tokensOut[token] > 0) {
-                    res[token] = tokensIn[token] - tokensOut[token];
-                }
-            } else {
-                res[token] = tokensIn[token];
+    for (const token in tokensIn) {
+        if (token in tokensOut) {
+            if (tokensIn[token] - tokensOut[token] > 0) {
+                res[token] = tokensIn[token] - tokensOut[token];
             }
+        } else {
+            res[token] = tokensIn[token];
         }
     }
     //console.log("getMissingTokens", tokensIn, tokensOut, res);
@@ -293,11 +291,9 @@ export async function buildBalanceBox(inputs, outputs, address) {
 
 export function buildTokenList(tokens) {
     var res = [];
-    if (tokens !== {}) {
-        for (const i in tokens) {
-            res.push({ "tokenId": i, "amount": tokens[i].toString() });
-        }
-    };
+    for (const i in tokens) {
+        res.push({ "tokenId": i, "amount": tokens[i].toString() });
+    }
     return res;
 }
 
@@ -354,10 +350,10 @@ export async function signTransaction(unsignedTx, inputs, dataInputs, wallet) {
         const ctx = await getErgoStateContext();
         const signedTx = wallet.sign_transaction(ctx, unsignedTransaction, inputBoxes, dataInputsBoxes);
         return signedTx.to_json();
-    } catch(e) {
+    } catch (e) {
         console.log(e)
     }
-    
+
 }
 
 // https://github.com/ergoplatform/eips/pull/37 ergopay:<txBase64safe>

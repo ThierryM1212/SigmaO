@@ -1,5 +1,6 @@
 import {Serializer} from "@coinbarn/ergo-ts";
 import * as crypto from "crypto-js";
+import { blake2b256, hex} from "@fleet-sdk/crypto";
 let ergolib = import('ergo-lib-wasm-browser');
 
 
@@ -160,4 +161,8 @@ export function byteArrayToBase64( byteArray ) {
         binary += String.fromCharCode( byteArray[ i ] );
     }
     return window.btoa( binary );
+}
+
+export function getErgotreeHash(ergoTreeHex) {
+    return hex.encode(blake2b256(hex.decode(ergoTreeHex)))
 }

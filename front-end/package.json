@@ -6,6 +6,7 @@
   "dependencies": {
     "@coinbarn/ergo-ts": "^0.3.0",
     "@faker-js/faker": "^7.6.0",
+    "@fleet-sdk/crypto": "^0.3.2",
     "@sweetalert2/theme-wordpress-admin": "^5.0.15",
     "@testing-library/jest-dom": "^5.11.9",
     "@testing-library/react": "^11.2.3",
@@ -20,7 +21,7 @@
     "chartjs-adapter-date-fns": "^3.0.0",
     "crypto-js": "^4.1.1",
     "date-fns": "^2.29.3",
-    "ergo-lib-wasm-browser": "^0.21.1",
+    "ergo-lib-wasm-browser": "^0.26.0",
     "localstorage-slim": "^2.3.0",
     "option-pricing-tree": "^1.0.1",
     "react": "^17.0.1",

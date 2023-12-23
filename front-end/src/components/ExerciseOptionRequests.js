@@ -19,6 +19,7 @@ export default class ExerciseOptionRequests extends React.Component {
 
     async fetchOptionRequests() {
         const allExerciseOptionRequests = await getUnspentBoxesForAddressUpdated(EXERCISE_OPTION_REQUEST_SCRIPT_ADDRESS);
+        console.log("ExerciseOptionRequests", allExerciseOptionRequests);
         const exerciseOptionsRequests = await Promise.all(allExerciseOptionRequests.map(async box => { return await ExerciseOptionRequest.create(box) }));
         this.setState({ exerciseOptionRequestsList: exerciseOptionsRequests })
     }

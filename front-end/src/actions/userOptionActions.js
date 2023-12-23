@@ -1,18 +1,19 @@
 import { errorAlert, waitingAlert } from "../utils/Alerts";
-import { encodeHexArrayConst, encodeHexConst, encodeLongArray, encodeStrConst } from "../ergo-related/serializer";
-import { DAPP_UI_ERGOTREE, DAPP_UI_FEE, DAPP_UI_MINT_FEE, MIN_NANOERG_BOX_VALUE } from "../utils/constants";
+import { blake2b256, decodeLongArray, encodeHexArrayConst, encodeHexConst, encodeLongArray, encodeStrConst, getErgotreeHash } from "../ergo-related/serializer";
+import { DAPP_UI_ERGOTREE, DAPP_UI_ERGOTREE_HASH, DAPP_UI_FEE, DAPP_UI_MINT_FEE, MIN_NANOERG_BOX_VALUE } from "../utils/constants";
 import { getTokenUtxos, getUtxos, walletSignTx } from "../ergo-related/wallet";
-import { boxById, currentHeight, getTokenInfo } from "../ergo-related/explorer";
-import { createTransaction } from "../ergo-related/wasm";
+import { boxById, currentHeight, getTokenInfo, searchUnspentBoxesUpdated } from "../ergo-related/explorer";
+import { createTransaction, getRegisterValue } from "../ergo-related/wasm";
 import JSONBigInt from 'json-bigint';
-import { EXERCISE_OPTION_REQUEST_SCRIPT_ADDRESS, OPTION_SCRIPT_ADDRESS } from "../utils/script_constants";
+import { EXERCISE_OPTION_REQUEST_SCRIPT_ADDRESS, OPTION_SCRIPT_ADDRESS, PEER_BOX_SCRIPT_ADDRESS } from "../utils/script_constants";
 import { OptionDef } from "../objects/OptionDef";
 import { getOptionName } from "../utils/option_utils";
+
 let ergolib = import('ergo-lib-wasm-browser');
 
 /* global BigInt */
 
-export async function createOptionRequest(optionType, optionStyle, underlyingTokenId, optionAmount, shareSize, strikePrice, maturityDate, txFee) {
+export async function createOptionRequest(optionType, optionStyle, underlyingTokenId, optionAmount, shareSize, strikePrice, maturityDate, txFee, optionDeliveryAddress, optionExerciseAddress, optionCloseAddress) {
     const address = localStorage.getItem('address') ?? '';
     if (address === '') {
         errorAlert("Set the ERG address to use SigmaO !");
@@ -35,7 +36,7 @@ export async function createOptionRequest(optionType, optionStyle, underlyingTok
         if (optionType === 1) { // Put reserve
             txAmount = txAmount + optionAmountRaw * strikePriceRaw * shareSize;
         }
-        const optionBoxValue = txAmount - txFee;
+        const optionBoxValue = txAmount - txFee - 2 * MIN_NANOERG_BOX_VALUE;
 
         var utxos = await getUtxos(txAmount);
         const requiredTokenAmount = optionAmountRaw * shareSize;
@@ -78,7 +79,20 @@ export async function createOptionRequest(optionType, optionStyle, underlyingTok
 
         const ECPointByteArray = (await ergolib).Address.from_base58(address).content_bytes();
         const ECPointHex = Buffer.from(ECPointByteArray).toString('hex');
-        const R9Array = await encodeHexArrayConst([ECPointHex, DAPP_UI_ERGOTREE]);
+
+        // ouput contract are user address, implementation as it is
+        //const issuerErgotree = (await ergolib).Address.from_base58(address).to_ergo_tree().to_base16_bytes();
+        const optionDeliveryErgotree = (await ergolib).Address.from_base58(optionDeliveryAddress).to_ergo_tree().to_base16_bytes();
+        const optionDeliveryErgotreeHash = getErgotreeHash(optionDeliveryErgotree);
+        const optionExerciseErgotree = (await ergolib).Address.from_base58(optionExerciseAddress).to_ergo_tree().to_base16_bytes();
+        const optionExerciseErgotreeHash = getErgotreeHash(optionExerciseErgotree);
+        const optionCloseErgotree = (await ergolib).Address.from_base58(optionCloseAddress).to_ergo_tree().to_base16_bytes();
+        const optionCloseErgotreeHash = getErgotreeHash(optionCloseErgotree);
+
+        //const issuerErgotreeHash = getErgotreeHash(issuerErgotree)
+        //console.log("issuerErgotree",issuerErgotree, "issuerErgotreeHash", issuerErgotreeHash);
+        const R9Array = await encodeHexArrayConst([ECPointHex, DAPP_UI_ERGOTREE_HASH,
+            optionDeliveryErgotreeHash, optionExerciseErgotreeHash, optionCloseErgotreeHash]);
         mintBoxBuilder.set_register_value(9, R9Array);
 
         try {
@@ -87,6 +101,41 @@ export async function createOptionRequest(optionType, optionStyle, underlyingTok
             console.log(`building error: ${e}`);
             throw e;
         }
+
+        // Create the peer box
+        const peerBoxValueStr = (2 * MIN_NANOERG_BOX_VALUE).toString();
+        const peerBoxValue = (await ergolib).BoxValue.from_i64((await ergolib).I64.from_str(peerBoxValueStr));
+        const peerBoxBuilder = new (await ergolib).ErgoBoxCandidateBuilder(
+            peerBoxValue,
+            (await ergolib).Contract.pay_to_address((await ergolib).Address.from_base58(PEER_BOX_SCRIPT_ADDRESS)),
+            creationHeight);
+        peerBoxBuilder.set_register_value(4, await encodeStrConst(optionName));
+        peerBoxBuilder.set_register_value(5, await encodeHexConst(underlyingToken.id));
+        peerBoxBuilder.set_register_value(6, await encodeStrConst(underlyingToken.decimals.toString()));
+
+        let optionUnderlyingTokenAmount = 0;
+        if (optionType === 0) { // Call reserve
+            optionUnderlyingTokenAmount = requiredTokenAmount
+        }
+        const optionValues = [optionBoxValue, optionUnderlyingTokenAmount]
+        peerBoxBuilder.set_register_value(7, await encodeLongArray(optionValues.map(x => x.toString())));
+
+        peerBoxBuilder.set_register_value(8, await encodeLongArray(optionParams.map(x => x.toString())));
+
+        const optionScriptErgotree = (await ergolib).Address.from_base58(OPTION_SCRIPT_ADDRESS).to_ergo_tree().to_base16_bytes();
+        const optionScriptErgotreeHash = getErgotreeHash(optionScriptErgotree)
+
+        const R9PeerArray = await encodeHexArrayConst([ECPointHex, DAPP_UI_ERGOTREE, optionDeliveryErgotree, optionExerciseErgotree, optionCloseErgotree, optionScriptErgotreeHash]);
+        peerBoxBuilder.set_register_value(9, R9PeerArray);
+
+        try {
+            outputCandidates.add(peerBoxBuilder.build());
+        } catch (e) {
+            console.log(`building error: ${e}`);
+            throw e;
+        }
+
+
         var tx = await createTransaction(boxSelection, outputCandidates, [], address, utxos, txFee);
         console.log("create option request tx", tx);
         const txId = await walletSignTx(alert, tx, address);
@@ -108,13 +157,23 @@ export async function refundOptionRequest(requestBox) {
     var alert = waitingAlert("Preparing the transaction...");
     try {
         const optionDef = await OptionDef.create(requestBox);
-        const inputsWASM = (await ergolib).ErgoBoxes.from_boxes_json([requestBox]);
+        const peerBox = await optionDef.getPeerBox();
+
+        let inputs = [requestBox];
+        let ouputValue = requestBox.value - optionDef.txFee;
+        if (peerBox) {
+            inputs.push(peerBox.full);
+            ouputValue = ouputValue + peerBox.full.value;
+            console.log("peerBox", peerBox);
+        }
+        console.log("inputs", inputs);
+        const inputsWASM = (await ergolib).ErgoBoxes.from_boxes_json(inputs);
         const dataListWASM = new (await ergolib).ErgoBoxAssetsDataList();
         const boxSelection = new (await ergolib).BoxSelection(inputsWASM, dataListWASM);
         const creationHeight = await currentHeight();
         const outputCandidates = (await ergolib).ErgoBoxCandidates.empty();
         //const tokenAmountAdjusted = BigInt(tokAmount * Math.pow(10, tokDecimals)).toString();
-        const refundBoxValue = (await ergolib).BoxValue.from_i64((await ergolib).I64.from_str((requestBox.value - optionDef.txFee).toString()));
+        const refundBoxValue = (await ergolib).BoxValue.from_i64((await ergolib).I64.from_str(ouputValue.toString()));
         const mintBoxBuilder = new (await ergolib).ErgoBoxCandidateBuilder(
             refundBoxValue,
             (await ergolib).Contract.pay_to_address((await ergolib).Address.from_base58(address)),
@@ -140,7 +199,7 @@ export async function refundOptionRequest(requestBox) {
             console.log(`building error: ${e}`);
             throw e;
         }
-        var tx = await createTransaction(boxSelection, outputCandidates, [], address, [requestBox], optionDef.txFee);
+        var tx = await createTransaction(boxSelection, outputCandidates, [], address, inputs, optionDef.txFee);
         console.log("create option request tx", tx)
         const txId = await walletSignTx(alert, tx, address);
         return txId;
@@ -151,7 +210,7 @@ export async function refundOptionRequest(requestBox) {
 }
 
 
-export async function exerciseOptionRequest(optionTokenId, optionAmount) {
+export async function exerciseOptionRequest(optionTokenId, optionAmount, exerciseAddress) {
     const address = localStorage.getItem('address') ?? '';
     if (address === '') {
         errorAlert("Set the ERG address to use SigmaO !");
@@ -210,6 +269,10 @@ export async function exerciseOptionRequest(optionTokenId, optionAmount) {
         mintBoxBuilder.set_register_value(4, buyerSigmaProp);
         const optionIssuerBoxWASM = (await ergolib).ErgoBox.from_json(JSONBigInt.stringify(optionIssuerBox));
         mintBoxBuilder.set_register_value(5, (await ergolib).Constant.from_ergo_box(optionIssuerBoxWASM));
+
+        // Option delivery ergotree - TO DO new param
+        const exerciseErgotree = (await ergolib).Address.from_base58(exerciseAddress).to_ergo_tree().to_base16_bytes();
+        mintBoxBuilder.set_register_value(6, await encodeHexConst(exerciseErgotree));
 
         try {
             outputCandidates.add(mintBoxBuilder.build());

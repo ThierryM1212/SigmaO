@@ -124,6 +124,11 @@ export async function getTransactionsByAddress(addr) {
     return res.data.items;
 }
 
+export async function getTransactionById(txId) {
+    const res = await getRequestV1(`/transactions/${txId}`);
+    return res.data;
+}
+
 export async function getUnconfirmedTxsFor(addr) {
     const res = await getRequestV1(`/mempool/transactions/byAddress/${addr}`);
     //console.log("getUnconfirmedTxsFor", res);
