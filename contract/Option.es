@@ -67,7 +67,7 @@
     
     // Option underlying token / ERG
     val HourInMilli = 3600000L
-    val OptionMaxDuration = HourInMilli * 24 * 365 * 3 // max 3 years duration
+    val OptionMaxDuration = HourInMilli * 24 * 366 * 3 // max 3 years duration
     val EuropeanExerciseDelay = HourInMilli * 24  // European options exercible during 24h after the maturity date
                                                   // The exercise request can be created before that period and will wait to be exercible
     val EmptyToken = (Coll[Byte](),0L)
@@ -129,19 +129,7 @@
     val amountOptionOutputs = OUTPUTS.map({ (output: Box) => output.tokens.map({(t: (Coll[Byte], Long)) => if (t._1 == optionTokenIDIn) t._2 else 0L})
                                                                           .fold(0L, { (acc: Long, curr: Long) => acc + curr }) })
                                      .fold(0L, { (acc: Long, curr: Long) => acc + curr })
-  //  val t2 = t1.map({(t: (Coll[Byte], Long)) => if (t._1 == optionTokenIDIn) t._2 else 0L})
-  //  val t3 = t2.fold(0L, { (acc: Long, curr: Long) => acc + curr })
-/*
-    val amountOptionOutputs: Long = OUTPUTS.flatMap({ (output: Box) => output.tokens })
-                                           .map({(t: (Coll[Byte], Long)) => if (t._1 == optionTokenIDIn) t._2 else 0L})
-                                           .fold(0L, { (acc: Long, curr: Long) => acc + curr })
-*/
-/*
-    val amountOptionOutputs: Long = OUTPUTS.flatMap({ (output: Box) => output.tokens.map({ 
-                                                            (t: (Coll[Byte], Long)) => if (t._1 == optionTokenIDIn) t._2 else 0L
-                                                    })
-                                          }).fold(0L, { (acc: Long, curr: Long) => acc + curr })
-*/
+
     val MinOptionReserveValue: Long = TxFee + BoxMinValue
 
     // Compute option state

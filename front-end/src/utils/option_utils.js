@@ -1,8 +1,9 @@
 import { boxByIdv1, getTokensForAddress, searchUnspentBoxes } from "../ergo-related/explorer";
 import { Option } from "../objects/Option";
 import { OptionDef } from "../objects/OptionDef";
-import { OPTION_TYPES } from "./constants";
+import { NANOERG_TO_ERG, OPTION_TYPES } from "./constants";
 import { OPTION_SCRIPT_ADDRESS } from "./script_constants";
+import { formatERGAmount } from "./utils";
 
 export async function getWalletOptionsDef(address) {
     const walletTokens = await getTokensForAddress(address);
@@ -34,8 +35,12 @@ export function getOptionName(optionType, optionStyle, underlyingTokenName, stri
     if (optionStyle === 1) {
         optionStyleLetter = 'A';
     }
-    var optionTypeText = OPTION_TYPES.find(o => o.id === optionType).label;
-
-    const optionName = optionTypeText + "_" + optionStyleLetter + "_" + underlyingTokenName + "_ERG_" + strikePrice + "_" + maturityDate.toISOString().substring(0, 10) + "_per_" + shareSize;
+    var optionTypeLetter = 'C';
+    if (optionType === 1) {
+        optionTypeLetter = 'P';
+    }
+    var strikePriceERG = strikePrice / NANOERG_TO_ERG;
+    const optionName = optionStyleLetter + optionTypeLetter + "_" + shareSize + "_" + underlyingTokenName + "_" + strikePriceERG + "_ERG_" +  maturityDate.toISOString().substring(0, 10);
+    //console.log("getOptionName", optionName);
     return optionName;
 }

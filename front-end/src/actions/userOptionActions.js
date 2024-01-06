@@ -270,7 +270,8 @@ export async function exerciseOptionRequest(optionTokenId, optionAmount, exercis
         const optionIssuerBoxWASM = (await ergolib).ErgoBox.from_json(JSONBigInt.stringify(optionIssuerBox));
         mintBoxBuilder.set_register_value(5, (await ergolib).Constant.from_ergo_box(optionIssuerBoxWASM));
 
-        // Option delivery ergotree - TO DO new param
+        // Option delivery ergotree
+        //console.log("exerciseAddress", exerciseAddress);
         const exerciseErgotree = (await ergolib).Address.from_base58(exerciseAddress).to_ergo_tree().to_base16_bytes();
         mintBoxBuilder.set_register_value(6, await encodeHexConst(exerciseErgotree));
 

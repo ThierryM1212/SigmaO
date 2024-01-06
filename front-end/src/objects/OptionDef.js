@@ -1,5 +1,5 @@
 import JSONBigInt from 'json-bigint';
-import { boxByIdv1, getTokenInfo, searchUnspentBoxesUpdated } from '../ergo-related/explorer';
+import { boxByIdv1, getTokenInfo, searchBoxes, searchUnspentBoxesUpdated } from '../ergo-related/explorer';
 import { decodeHex, decodeHexArray, decodeLongArray, decodeString, ergoTreeToAddress } from '../ergo-related/serializer';
 import { getRegisterValue, getTokenAmount } from '../ergo-related/wasm';
 import { TX_FEE } from '../utils/constants';
@@ -103,13 +103,23 @@ export class OptionDef {
     async getPeerBox() {
 
         // Search the peer box matching the option parameters
-        const peerBoxesJSON = await searchUnspentBoxesUpdated(PEER_BOX_SCRIPT_ADDRESS, [],
+        let peerBoxesJSON = await searchUnspentBoxesUpdated(PEER_BOX_SCRIPT_ADDRESS, [],
             {
                 "R5": this.underlyingTokenId,
                 "R7": JSONBigInt.stringify([this.initERGAmount, this.initTokenAmount]),
                 "R8": JSONBigInt.stringify(this.optionParams)
             });
+        const spentPeerBoxes = await searchBoxes(PEER_BOX_SCRIPT_ADDRESS, [],
+            {
+                "R5": this.underlyingTokenId,
+                "R7": JSONBigInt.stringify([this.initERGAmount, this.initTokenAmount]),
+                "R8": JSONBigInt.stringify(this.optionParams)
+            });
+        console.log("spentPeerBoxes", spentPeerBoxes)
         console.log("getPeerBox0", peerBoxesJSON)
+
+        peerBoxesJSON = peerBoxesJSON.concat(spentPeerBoxes)
+        console.log("getPeerBox1 concat", peerBoxesJSON)
         let peerBoxes = await Promise.all(peerBoxesJSON.map(async b => {
             const peerBox = await PeerBox.create(b);
             return peerBox;
