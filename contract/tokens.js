@@ -183,6 +183,14 @@ const TOKENS = [
         oracleType: "Spectrum LP",
         icon: "Auction_Coin.png",
     },
+    {
+        name: "rsADA",
+        tokenId: "e023c5f382b6e96fbd878f6811aac73345489032157ad5affb84aefd4956c297",
+        decimals: 6,
+        oracleTokenId: "ae97c5eccd59a065cd973a8d6afb8bb79f9cc70368a7dcdf73aaeab1cedf6f6b",
+        oracleType: "Spectrum LP",
+        icon: "rsada.svg",
+    },
 
 ]
 
