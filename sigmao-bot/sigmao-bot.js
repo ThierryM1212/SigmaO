@@ -9,6 +9,7 @@ import dayjs from 'dayjs';
 import { SellOptionRequest } from './src/objects/SellOptionRequest.js';
 import { BuyTokenRequest } from './src/objects/BuyTokenRequest.js';
 import { SellTokenRequest } from './src/objects/SellTokenRequest.js';
+import express from 'express';
 
 console.log("STARTING SigmaO bot");
 
@@ -140,3 +141,11 @@ setInterval(processExerciseOption, 32000);
 setInterval(processCloseSellOption, 33000);
 setInterval(processCloseEmptySellToken, 34000);
 
+const app = express();
+const port = 8080
+app.get('/', (req, res) => {
+    res.send('SigmaO bot online')
+})
+app.listen(port, () => {
+    console.log(`SigmaO bot listening on port ${port}`)
+})
