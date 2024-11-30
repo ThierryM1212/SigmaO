@@ -4,6 +4,7 @@ import DashboardIcon from "../images/dashboard_white_24dp.svg";
 import InputAddress from './InputAddress';
 import HelpToolTip from './HelpToolTip';
 import './drop-down-dark.css';
+import { BotPooler } from './BotPooler';
 
 function NavigationBar(props) {
     const address = localStorage.getItem('address') ?? '';
@@ -12,7 +13,7 @@ function NavigationBar(props) {
             <Navbar.Brand href="/">
                 <img src={Logo} alt="logo" width={48} className="hidden-mobile" />
             </Navbar.Brand>
-
+            <BotPooler />
             <Navbar.Toggle aria-controls="basic-navbar-nav" />
             <Navbar.Collapse id="basic-navbar-nav">
                 <Nav className="mr-auto align-items-center">
